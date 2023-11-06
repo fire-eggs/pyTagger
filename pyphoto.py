@@ -247,6 +247,9 @@ from tkinter import *
 from tkinter.filedialog import SaveAs, Directory
 from tkinter.messagebox import showerror
 
+from TagView import *
+tagwin = None
+
 # [SA] require PIL/Pillow install
 pillowerror = """
 Pillow 3rd-party package is not installed.
@@ -681,7 +684,8 @@ class ViewOne(Toplevel):
             self.setTitle(nextfile)
             self.trueimage = nextimgpil               # save for ops on image
             self.drawImageFirst()                     # new image, same win/canvas
-        
+            tagwin.showImage(nextfile) # KBR update tagview
+            
         """
         # or new window: this worked but was too twitchy...
         ViewOne(currdir, nextfile, self.dirwinsize, (plus new stuff))
@@ -694,6 +698,33 @@ class ViewOne(Toplevel):
     def onPrevImage(self, event):
         self.switchimage(-1)
 
+# End class ViewOne
+
+canvas = None # TODO HACK
+btnSelected = None # TODO HACK
+
+def singleClick(btn, imgdir, fileimpacted):
+  global canvas # TODO HACK
+  global tagwin # TODO HACK
+  global btnSelected # TODO HACK
+  
+  orig_color = btn.cget("background")
+  
+  if btnSelected is not None:
+    btnSelected.config(bg=orig_color, activebackground=orig_color)  
+    
+  #print(f"KBR: click2 {btn} {imgdir} {fileimpacted}")
+  btnSelected = btn
+  btn.configure(relief='sunken')
+  btn.configure(bg='red',activebackground='red')
+  
+  canvas.update()
+  
+  tagwin.showImage(fileimpacted) # Notify tag window
+  
+  # TODO not updating until mouse move: why?
+  # TODO un-sunk all other buttons
+  
 
 ############################################################################
 # View the thumbnails window for an initial or chosen directory
@@ -723,6 +754,11 @@ def viewThumbs(imgdir,                         # open this folder
     delete all thumbs on size changes (see viewer_thumbs.py).
     --------------------------------------------------------------
     """
+    global canvas # TODO HACK
+
+    global tagwin # TODO HACK
+    
+        
     win = kind()
     helptxt = 'D=open'
     win.title('%s: %s (%s)' % (appname, imgdir, helptxt))
@@ -732,7 +768,7 @@ def viewThumbs(imgdir,                         # open this folder
     # [SA] Quit=destroy (this window only unless last Tk), not quit (entire app)
     tools = Frame(win, bg='beige')
     tools.pack(side=BOTTOM, fill=X)
-    quit = Button(tools, text=' Quit ', command=win.destroy)   # [SA] no bg= on Mac
+    quit = Button(tools, text=' Quit ', command=lambda: onQuit(win)) # KBR command=win.destroy)   # [SA] no bg= on Mac
     quit.pack(side=RIGHT, expand=YES)
     help = Button(tools, text=' Help ', command=lambda: onHelp(win))
     help.pack(side=LEFT, expand=YES)
@@ -740,23 +776,42 @@ def viewThumbs(imgdir,                         # open this folder
     # [SA] question=? but portable, help key in all gadgets
     win.bind('<KeyPress-question>', lambda event: onHelp(win))
 
-    # make or load thumbs ==> [(imgfile, imgobj)]
-    thumbs = makeThumbs(imgdir,                             # all images in folder
-                        size=(128, 128),                    # fixed thumbnails size
-                        busywindow=win,                     # announce in GUI
-                        nothumbchanges=nothumbchanges)      # don't detect changes? 
+    tagwin=TagView(imgdir)
+    tagwin.initScan()
 
+    # make or load thumbs ==> [(imgfile, imgobj)]
+    TSIZE = 160
+    thumbs = makeThumbs(imgdir,                             # all images in folder
+                        size=(TSIZE, TSIZE),                    # fixed thumbnails size
+#KBR                        size=(128, 128),                    # fixed thumbnails size
+                        busywindow=win,                     # announce in GUI
+                        nothumbchanges=nothumbchanges,      # don't detect changes? 
+                        _tagswin=tagwin)
+                        
+    tagwin.doneScan()
+    
     numthumbs = len(thumbs)
-    if numthumbs == 0:                                      # no-image dir?
-        numcols = numrows = 0                               # [SA] avoid / 0 exc
-    else:
-        if not numcols:
-            numcols = int(math.ceil(math.sqrt(numthumbs)))  # fixed or N x N
-        numrows = int(math.ceil(numthumbs / numcols))       # 3.x true div
+#KBR    
+#    if numthumbs == 0:                                      # no-image dir?
+#        numcols = numrows = 0                               # [SA] avoid / 0 exc
+#    else:
+#        if not numcols:
+#            numcols = int(math.ceil(math.sqrt(numthumbs)))  # fixed or N x N
+#        numrows = int(math.ceil(numthumbs / numcols))       # 3.x true div
+
+    #print(f"KBR:{dirwinsize}")
 
     width, height = dirwinsize                      # [SA] new configs model
     canvas = ScrolledCanvas(win)                    # init viewable window size
     canvas.config(height=height, width=width)       # changes if user resizes
+
+    if numthumbs == 0:                                      # no-image dir?
+        numcols = numrows = 0                               # [SA] avoid / 0 exc
+    else:
+        if not numcols:
+            numcols = int(width / TSIZE) # TODO KBR magic number see above
+        numrows = int(math.ceil(numthumbs / numcols))       # 3.x true div
+
 
     # max w|h: thumb=(name, obj), obj.size=(width, height)
     if numthumbs == 0:
@@ -770,15 +825,30 @@ def viewThumbs(imgdir,                         # open this folder
 
     rowpos = 0
     savephotos = []
+    allbtns = []
     while thumbs:
         thumbsrow, thumbs = thumbs[:numcols], thumbs[numcols:]
         colpos = 0
         for (imgfile, imgobj) in thumbsrow:
             photo = PhotoImage(imgobj)
-            link  = Button(canvas, image=photo)
-            def handler(_imgfile=imgfile): 
-                ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
-            link.config(command=handler, width=linksize, height=linksize)
+            link  = Button(canvas, image=photo, relief="raised")
+            allbtns.append(link) # keep reference to avoid gc
+            #if imgfile == '2009-VaioP.jpg':
+            #  print(f"{link} {imgfile}")
+            
+            def handler1(event, _link=link, _imgfile=imgfile):
+              #print(f"{_link} {_imgfile}")
+              singleClick(_link, imgdir, _imgfile)
+            link.bind('<Button-1>', handler1)
+
+            def handler2(event, _imgfile=imgfile):
+              ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
+            link.bind('<Double-1>', handler2)
+            
+#            def handler(_imgfile=imgfile): 
+#                ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
+#            link.config(command=handler, width=linksize, height=linksize)
+
             link.pack(side=LEFT, expand=YES)
             canvas.create_window(colpos, rowpos, anchor=NW,
                     window=link, width=linksize, height=linksize)
@@ -797,7 +867,7 @@ def viewThumbs(imgdir,                         # open this folder
     win.bind('<Down>',  lambda event: canvas.yview_scroll(+1, 'units'))
     win.bind('<Left>',  lambda event: canvas.xview_scroll(-1, 'units'))
     win.bind('<Right>', lambda event: canvas.xview_scroll(+1, 'units'))
-
+    
     win.focus()   # [SA] on Windows, make sure new window catches events now
     return win
 
@@ -819,6 +889,10 @@ def onDirectoryOpen(parentwin, dirwinsize, viewsize, nothumbchanges):
     else:
         parentwin.focus_force()   # [SA] for Mac
 
+def onQuit(parentwin):
+  if tagwin is not None:
+    tagwin.destroy()
+  parentwin.destroy()
 
 def onHelp(parentwin):
     """
@@ -886,7 +960,8 @@ if __name__ == '__main__':
     else show simple window to select
     """ 
     from getConfigs import getConfigs               # [SA] new gadgets utility
-    defaults = dict(InitialSize='500x400',          # size of dir/thumbs window
+    #KBR defaults = dict(InitialSize='500x400',          # size of dir/thumbs window
+    defaults = dict(InitialSize='1500x900',          # size of dir/thumbs window
                     InitialFolder='images-mixed',   # None = ask for dir
                     ViewSize=None,                  # None = scale to screen
                     NoThumbChanges=False)           # True = skip change detection [2.1]

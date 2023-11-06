@@ -183,11 +183,13 @@ VERSION 2.0, Sep-2017 [SA]: standalone release of book's PyGadgets.
 """
 
 import os, sys, math, mimetypes, shutil, errno, pickle, traceback, io
+import base64 # KBR marker image
 from tkinter import *
 from PIL import Image                   # <== required for thumbs
 from PIL.ImageTk import PhotoImage      # <== required for JPEG display
 from PIL.ExifTags import TAGS           # <== required for orientation tag [2.2]
 
+tagwin = None
 
 ###############################################################################
 # Choose your weapon (use 2.1 file or 2.0 subdir mode)
@@ -200,8 +202,12 @@ def makeThumbs(imgdir,                            # source dir, actual images
                pklfile='_PyPhoto-thumbs.pkl',     # 2.1 pickle-file thumbnails
                forceSubdir=False,                 # True=make and use subfolders
                busywindow=None,                   # Tk widget: announce pause in GUI?
-               nothumbchanges=False):             # 2.1 ignore diffs in images? (BD-R)
+               nothumbchanges=False,              # 2.1 ignore diffs in images? (BD-R)
+               _tagswin=None):
 
+    global tagwin
+    tagwin = _tagswin
+    
     if forceSubdir:
         thumbs = makeThumbs_subdir(imgdir, size, subdir, busywindow)
     else:
@@ -405,6 +411,12 @@ def makeThumbs_pklfile(imgdir, size, pklfile, busywindow, nothumbchanges):
     all work (the latter form was used here because it's more explicit).
     ---------------------------------------------------------------------------
     """
+    global tagwin
+    
+    global markImg # TODO HACK
+    if markImg is None:
+      markImg=Image.open(io.BytesIO(base64.b64decode(markbytes)))
+    
     MODTIME, FILEBYTES = 0, 1  # dicts are expensive
     thumbpath = os.path.join(imgdir, pklfile)
 
@@ -465,7 +477,7 @@ def makeThumbs_pklfile(imgdir, size, pklfile, busywindow, nothumbchanges):
 
         else:
             # new or changed: make new thumb
-            print('Making thumb for', imgfile)
+#            print('Making thumb for', imgfile)
             phfile  = None
             imgpath = os.path.join(imgdir, imgfile)           # open and downsize
             try:
@@ -493,6 +505,8 @@ def makeThumbs_pklfile(imgdir, size, pklfile, busywindow, nothumbchanges):
                     # fallback: use a white borderless image (no name ok)
                     imgobj = Image.new(mode='1', size=size, color='#FFFFFF') 
                 imgobj.thumbnail(size, Image.ANTIALIAS)
+
+            tagwin.getTags(imgfile)
 
             try:
                 # add img-modtime + thumb-img-bytes to cache
@@ -604,6 +618,8 @@ def copyModtime(imgpath, thumbpath):
         if why.errno != errno.EINVAL:       # ignore err 22 on Macs: moot
             raise                           # propagate all other errnos/excs  
 
+markbytes = b'iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAA+klEQVR4nO2TvUoDQRSFv50ZE4M/RZqoRcoIaycERCsJeYRASgk2imVeIW0gdUpLK0sLe/UNUmglYqeVhGXJsdhFd8C/xQhCcuA2h7nfvWeYCSSJKcpME/YnQAd94AK4BeIcrWVgGzgEdt5taVNSSZKRFPywbNpTkzRUVg7u6Z5d8fSynjteu96jGd55noEoN8iX/0gcrP4CtgJUPSeQGoriB8RzOm0MxAwuTxk97r0dPNk/INy4SXagBFRwZgtrOsBudsNzCi4iiS6gBVxjgok3ecFOKLpj4AiwQCFTXuQlkspYn2oZWPvyEv7/T5kDZxhoP/AWgcq3wFcOaWtx8MXUyQAAAABJRU5ErkJggg=='
+markImg = None
 
 def makeThumbs_subdir(imgdir, size, subdir, busywindow):
     """
@@ -637,6 +653,10 @@ def makeThumbs_subdir(imgdir, size, subdir, busywindow):
     *CAUTION*: see copyModtime()'s note about deleting thumbs on size changes.
     ---------------------------------------------------------------------------
     """
+    global markImg # TODO HACK
+    if markImg is None:
+      markImg=Image.open(io.BytesIO(base64.b64decode(markbytes)))
+      
     thumbdir = os.path.join(imgdir, subdir)
     if not os.path.exists(thumbdir):
         os.mkdir(thumbdir)
@@ -676,7 +696,7 @@ def makeThumbs_subdir(imgdir, size, subdir, busywindow):
             thumbs.append((imgfile, thumbobj))
 
         else:
-            print('Making thumb for', thumbpath)
+#            print('Making thumb for', thumbpath)
             imgpath = os.path.join(imgdir, imgfile)
             try:
                 imgobj = Image.open(imgpath)            # else make new thumb
@@ -727,9 +747,13 @@ class ViewOne(Toplevel):
         imgpath = os.path.join(imgdir, imgfile)
         imgobj  = PhotoImage(file=imgpath)
         Label(self, image=imgobj).pack()
-        print(imgpath, imgobj.width(), imgobj.height())   # size in pixels
+        #print(imgpath, imgobj.width(), imgobj.height())   # size in pixels
         self.savephoto = imgobj                           # keep reference on me
 
+
+def singleClick(self, imgdir, fileimpacted):
+  #print(f"KBR: click {fileimpacted}")
+  pass
 
 def viewer(imgdir, kind=Toplevel, cols=None):
     """
@@ -756,8 +780,12 @@ def viewer(imgdir, kind=Toplevel, cols=None):
         for (imgfile, imgobj) in thumbsrow:
             photo   = PhotoImage(imgobj)
             link    = Button(row, image=photo)
-            handler = lambda savefile=imgfile: ViewOne(imgdir, savefile)
-            link.config(command=handler)
+            
+            handler = lambda fileImpacted=imgfile: singleClick(link, imgdir, fileImpacted)
+            link.bind('<Button-1>', singleClick)
+#KBR            handler = lambda savefile=imgfile: ViewOne(imgdir, savefile)
+#KBR            link.config(command=handler)
+
             link.pack(side=LEFT, expand=YES)
             savephotos.append(photo)
     return win, savephotos
