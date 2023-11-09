@@ -506,7 +506,7 @@ class ViewOne(Toplevel):
 
         self.savephoto = imgtk                           # keep reference on me
         self.viewimage = imgpil                          # currently shown size
-        trace((scrwide, scrhigh), imgpil.size)
+#        trace((scrwide, scrhigh), imgpil.size)
 
         # [SA] move to upper-left if too big or partially off-screen
         self.update()
@@ -818,7 +818,7 @@ def viewThumbs(imgdir,                         # open this folder
         linksize = 0   # [SA] avoid empty-seq max() exc
     else:
         linksize = max(max(thumb[1].size) for thumb in thumbs)
-    trace(linksize)
+#    trace(linksize)
     fullsize = (0, 0,                                   # upper left  X,Y
         (linksize * numcols), (linksize * numrows) )    # lower right X,Y
     canvas.config(scrollregion=fullsize)                # scrollable area size
