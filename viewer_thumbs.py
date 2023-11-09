@@ -412,10 +412,12 @@ def makeThumbs_pklfile(imgdir, size, pklfile, busywindow, nothumbchanges):
     ---------------------------------------------------------------------------
     """
     global tagwin
-    
     global markImg # TODO HACK
+    global errMarkImg # TODO HACK
+    
     if markImg is None:
       markImg=Image.open(io.BytesIO(base64.b64decode(markbytes)))
+      errMarkImg =Image.open(io.BytesIO(base64.b64decode(errMarkBytes)))
     
     MODTIME, FILEBYTES = 0, 1  # dicts are expensive
     thumbpath = os.path.join(imgdir, pklfile)
@@ -506,7 +508,11 @@ def makeThumbs_pklfile(imgdir, size, pklfile, busywindow, nothumbchanges):
                     imgobj = Image.new(mode='1', size=size, color='#FFFFFF') 
                 imgobj.thumbnail(size, Image.ANTIALIAS)
 
-            tagwin.getTags(imgfile)
+            markstate = tagwin.getTags(imgfile)
+            if markstate == 1:                # image has tags
+              imgobj.paste(markImg, (5, 5))
+            elif markstate == 2:              # image has tag error
+              imgobj.paste(errMarkImg, (5,5))
 
             try:
                 # add img-modtime + thumb-img-bytes to cache
@@ -618,8 +624,10 @@ def copyModtime(imgpath, thumbpath):
         if why.errno != errno.EINVAL:       # ignore err 22 on Macs: moot
             raise                           # propagate all other errnos/excs  
 
-markbytes = b'iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAA+klEQVR4nO2TvUoDQRSFv50ZE4M/RZqoRcoIaycERCsJeYRASgk2imVeIW0gdUpLK0sLe/UNUmglYqeVhGXJsdhFd8C/xQhCcuA2h7nfvWeYCSSJKcpME/YnQAd94AK4BeIcrWVgGzgEdt5taVNSSZKRFPywbNpTkzRUVg7u6Z5d8fSynjteu96jGd55noEoN8iX/0gcrP4CtgJUPSeQGoriB8RzOm0MxAwuTxk97r0dPNk/INy4SXagBFRwZgtrOsBudsNzCi4iiS6gBVxjgok3ecFOKLpj4AiwQCFTXuQlkspYn2oZWPvyEv7/T5kDZxhoP/AWgcq3wFcOaWtx8MXUyQAAAABJRU5ErkJggg=='
+errMarkBytes = b'iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAABZElEQVR4nK3VQUsUcRjH8c9/Z9V2FyvrYpBgKyYE4gvwYKdeQLc6eOzcOYLQs3jx2KWLb0LxHQjRVVKEVQixqKAtV5zpsILr+B9nwh6Ywzw/nu//9/z5MROyLMv8x6pfba1gA7s4KxhL0MZmGfAT3qODHjKECHAIf6o4THDg+7NZ6behAnf9CndSY1ulwEOcXOCnukIjtnZNGK1VcXjv0lvr3a76kyZag94wjpkqwL2cPIxVvIgOxyrn+2PlwYrAiZzcw2tM5p5ZvIwCIzkcrBRfIx5unWvXA7t0moPiz8W5wqNGnp9ovbke2MyvHI9NQE3yMBb4kpXjsWngAeLuS+7wxrG5eZU4PMUy1iLaI6z/K/AMnyP9pKAfBV7cwq+l6YKPQ0Dd7Q+lwHm8lbR3CDtCyKRHI32jCenRcP/I+72oOwiXfwFfzlf5sc1at987TTi+y8whC/vZ786r0GjjMZ5eAf4FaPxPtbny7yIAAAAASUVORK5CYII='
+markbytes    = b'iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAA+klEQVR4nO2TvUoDQRSFv50ZE4M/RZqoRcoIaycERCsJeYRASgk2imVeIW0gdUpLK0sLe/UNUmglYqeVhGXJsdhFd8C/xQhCcuA2h7nfvWeYCSSJKcpME/YnQAd94AK4BeIcrWVgGzgEdt5taVNSSZKRFPywbNpTkzRUVg7u6Z5d8fSynjteu96jGd55noEoN8iX/0gcrP4CtgJUPSeQGoriB8RzOm0MxAwuTxk97r0dPNk/INy4SXagBFRwZgtrOsBudsNzCi4iiS6gBVxjgok3ecFOKLpj4AiwQCFTXuQlkspYn2oZWPvyEv7/T5kDZxhoP/AWgcq3wFcOaWtx8MXUyQAAAABJRU5ErkJggg=='
 markImg = None
+errMarkImg = None
 
 def makeThumbs_subdir(imgdir, size, subdir, busywindow):
     """

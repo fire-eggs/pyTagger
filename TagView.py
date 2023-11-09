@@ -93,18 +93,23 @@ class TagView(Toplevel):
       except:
           return False, [] # couldn't parse xmp
         
+    # 0
+    # 1 has tags
+    # 2 error
     def getTags(self, imgfile):
       # For an image in the folder, adds its tags to the folder list
       
       # read all tags from provided imgfile
       ok, taglist = self.getImgTags(imgfile)
       if not ok:
-        return
+        return 2
 
       taglist = [i.lower() for i in taglist if i] # remove empty strings; all lowercase
       
       # add each to the master tag set 
       self.masterTagList.update(taglist)
+      
+      return 0 if len(taglist) == 0 else 1
       
     def clickReset(self):
       # Reset button clicked: return current taglist to "original"
