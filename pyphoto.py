@@ -244,7 +244,7 @@ Other TBDs include:
 
 import sys, math, os, traceback
 from tkinter import *
-from tkinter.filedialog import SaveAs, Directory
+from tkinter.filedialog import SaveAs, Directory, askdirectory
 from tkinter.messagebox import showerror
 
 from TagView import *
@@ -887,7 +887,8 @@ def onDirectoryOpen(parentwin, dirwinsize, viewsize, nothumbchanges):
     open a new image directory in a new main window;
     available via "D" in both thumb and img windows
     """
-    dirname = openDialog.show()
+    dirname = askdirectory(parent=parentwin,mustexist=True)
+    #dirname = openDialog.show()
     if dirname:
         viewThumbs(dirname, Toplevel, dirwinsize, viewsize, 
                    nothumbchanges=nothumbchanges)
