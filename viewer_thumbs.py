@@ -79,7 +79,7 @@ VERSION 2.2, Sep-2018: rereleased with new PyGadgets packages.
      because all its image.save() calls pass in filename strings, not buffers. 
 
 VERSION 2.1, Nov-2017: rereleased with new PyGadgets packages.  
-  
+
   Most prominently in 2.1, this module now stores all the thumbnails for a
   folder in a single pickle file, instead of individual image files in a 
   subfolder.  This avoids:
@@ -120,7 +120,7 @@ VERSION 2.1, Nov-2017: rereleased with new PyGadgets packages.
     longer created or used unless requested explicitly by client code, and are 
     _not_ auto-deleted or auto-converted to the 2.1 pickle-file format when 
     found (2.0's too-generic subfolder name "thumbs" may have other uses). 
- 
+
     PyPhoto 2.0 users should run the included script (or its frozen executable)
     "delete-pyphoto2.0-thumbs-folders.py" to delete all 2.0 subfolders when 
     upgrading to 2.1.  Else 2.0's subfolders will remain as unused trash after
@@ -207,7 +207,7 @@ def makeThumbs(imgdir,                            # source dir, actual images
 
     global tagwin
     tagwin = _tagswin
-    
+
     if forceSubdir:
         thumbs = makeThumbs_subdir(imgdir, size, subdir, busywindow)
     else:
@@ -414,18 +414,19 @@ def makeThumbs_pklfile(imgdir, size, pklfile, busywindow, nothumbchanges):
     global tagwin
     global markImg # TODO HACK
     global errMarkImg # TODO HACK
-    
+
+    # KBR Initialize the watermark images.
     if markImg is None:
-      markImg=Image.open(io.BytesIO(base64.b64decode(markbytes)))
-      errMarkImg =Image.open(io.BytesIO(base64.b64decode(errMarkBytes)))
-    
+        markImg=Image.open(io.BytesIO(base64.b64decode(markbytes)))
+        errMarkImg =Image.open(io.BytesIO(base64.b64decode(errMarkBytes)))
+
     MODTIME, FILEBYTES = 0, 1  # dicts are expensive
     thumbpath = os.path.join(imgdir, pklfile)
 
     # announce in GUIs
     busylabel = None
     if (busywindow and 
-       (not os.path.exists(thumbpath) or os.path.getsize(thumbpath) == 0)):
+        (not os.path.exists(thumbpath) or os.path.getsize(thumbpath) == 0)):
         message = 'Building thumbnail images cache...'
         busylabel = Label(busywindow, text=message)
         busylabel.config(height=10, width=len(message)+10, cursor='watch')
@@ -448,7 +449,7 @@ def makeThumbs_pklfile(imgdir, size, pklfile, busywindow, nothumbchanges):
             print('Cannot load thumbs-cache file: skipped')
             thumbcache = {}
     thumbcachechanged = False
- 
+
     # remove orphaned thumbs: image deleted or renamed
     for thumbname in list(thumbcache.keys()):              # for all thumbs (keys)
         imgpath = os.path.join(imgdir, thumbname)          # img dir file
@@ -469,9 +470,9 @@ def makeThumbs_pklfile(imgdir, size, pklfile, busywindow, nothumbchanges):
 
         # check cache+timestamps
         if ((imgfile in thumbcache) and 
-              (nothumbchanges or 
+            (nothumbchanges or 
                modtimeMatch(imgfile, imgdir, thumbtime=thumbcache[imgfile][MODTIME]) 
-              )): 
+               )): 
             # use already-created thumb
             imgdat = thumbcache[imgfile][FILEBYTES]           # file-save bytes
             imgobj = Image.open(io.BytesIO(imgdat))           # pickled data => pil obj
@@ -508,11 +509,12 @@ def makeThumbs_pklfile(imgdir, size, pklfile, busywindow, nothumbchanges):
                     imgobj = Image.new(mode='1', size=size, color='#FFFFFF') 
                 imgobj.thumbnail(size, Image.ANTIALIAS)
 
+            # KBR apply a watermark image for files with tags or errors
             markstate = tagwin.getTags(imgfile)
             if markstate == 1:                # image has tags
-              imgobj.paste(markImg, (5, 5))
+                imgobj.paste(markImg, (5, 5))
             elif markstate == 2:              # image has tag error
-              imgobj.paste(errMarkImg, (5,5))
+                imgobj.paste(errMarkImg, (5,5))
 
             try:
                 # add img-modtime + thumb-img-bytes to cache
@@ -586,7 +588,7 @@ def modtimeMatch(imgfile, imgdir, thumbdir=None, thumbtime=None, allowance=2):
     """
     timeimg = os.path.getmtime(os.path.join(imgdir, imgfile))
     timethm = (thumbtime if thumbtime != None else 
-              os.path.getmtime(os.path.join(thumbdir, imgfile)))
+               os.path.getmtime(os.path.join(thumbdir, imgfile)))
 
     return timeimg >= (timethm - allowance) and timeimg <= (timethm + allowance)
 
@@ -624,10 +626,12 @@ def copyModtime(imgpath, thumbpath):
         if why.errno != errno.EINVAL:       # ignore err 22 on Macs: moot
             raise                           # propagate all other errnos/excs  
 
+# KBR embedded watermark images
 errMarkBytes = b'iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAABZElEQVR4nK3VQUsUcRjH8c9/Z9V2FyvrYpBgKyYE4gvwYKdeQLc6eOzcOYLQs3jx2KWLb0LxHQjRVVKEVQixqKAtV5zpsILr+B9nwh6Ywzw/nu//9/z5MROyLMv8x6pfba1gA7s4KxhL0MZmGfAT3qODHjKECHAIf6o4THDg+7NZ6behAnf9CndSY1ulwEOcXOCnukIjtnZNGK1VcXjv0lvr3a76kyZag94wjpkqwL2cPIxVvIgOxyrn+2PlwYrAiZzcw2tM5p5ZvIwCIzkcrBRfIx5unWvXA7t0moPiz8W5wqNGnp9ovbke2MyvHI9NQE3yMBb4kpXjsWngAeLuS+7wxrG5eZU4PMUy1iLaI6z/K/AMnyP9pKAfBV7cwq+l6YKPQ0Dd7Q+lwHm8lbR3CDtCyKRHI32jCenRcP/I+72oOwiXfwFfzlf5sc1at987TTi+y8whC/vZ786r0GjjMZ5eAf4FaPxPtbny7yIAAAAASUVORK5CYII='
 markbytes    = b'iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAA+klEQVR4nO2TvUoDQRSFv50ZE4M/RZqoRcoIaycERCsJeYRASgk2imVeIW0gdUpLK0sLe/UNUmglYqeVhGXJsdhFd8C/xQhCcuA2h7nfvWeYCSSJKcpME/YnQAd94AK4BeIcrWVgGzgEdt5taVNSSZKRFPywbNpTkzRUVg7u6Z5d8fSynjteu96jGd55noEoN8iX/0gcrP4CtgJUPSeQGoriB8RzOm0MxAwuTxk97r0dPNk/INy4SXagBFRwZgtrOsBudsNzCi4iiS6gBVxjgok3ecFOKLpj4AiwQCFTXuQlkspYn2oZWPvyEv7/T5kDZxhoP/AWgcq3wFcOaWtx8MXUyQAAAABJRU5ErkJggg=='
 markImg = None
 errMarkImg = None
+
 
 def makeThumbs_subdir(imgdir, size, subdir, busywindow):
     """
@@ -661,18 +665,14 @@ def makeThumbs_subdir(imgdir, size, subdir, busywindow):
     *CAUTION*: see copyModtime()'s note about deleting thumbs on size changes.
     ---------------------------------------------------------------------------
     """
-    global markImg # TODO HACK
-    if markImg is None:
-      markImg=Image.open(io.BytesIO(base64.b64decode(markbytes)))
-      
     thumbdir = os.path.join(imgdir, subdir)
     if not os.path.exists(thumbdir):
         os.mkdir(thumbdir)
- 
+
     # [SA] announce in GUIs
     busylabel = None
     if (busywindow and 
-       (not os.path.exists(thumbdir) or len(os.listdir(thumbdir)) == 0)):
+        (not os.path.exists(thumbdir) or len(os.listdir(thumbdir)) == 0)):
         # caveat: this is redundant with 2.1 code above (factor me)
         message = 'Building thumbnail images cache...'
         busylabel = Label(busywindow, text=message)
@@ -712,7 +712,7 @@ def makeThumbs_subdir(imgdir, size, subdir, busywindow):
                     imgobj.thumbnail(size, Image.LANCZOS)    # [SA] now called this
                 else:                                        # newer Pillows only
                     imgobj.thumbnail(size, Image.ANTIALIAS)  # best downsize filter
-                
+
                 tiffs = ('.tif', '.tiff')
                 if not thumbpath.lower().endswith(tiffs): 
                     imgobj.save(thumbpath)              # type via ext or passed
@@ -742,6 +742,8 @@ def makeThumbs_subdir(imgdir, size, subdir, busywindow):
 ###############################################################################
 
 
+# KBR TODO duplicated in pyphoto.py ?
+
 class ViewOne(Toplevel):
     """
     ---------------------------------------------------------------------------
@@ -760,8 +762,10 @@ class ViewOne(Toplevel):
 
 
 def singleClick(self, imgdir, fileimpacted):
-  #print(f"KBR: click {fileimpacted}")
-  pass
+    #print(f"KBR: click {fileimpacted}")
+    pass
+
+# KBR TODO obsolete?
 
 def viewer(imgdir, kind=Toplevel, cols=None):
     """
@@ -788,7 +792,7 @@ def viewer(imgdir, kind=Toplevel, cols=None):
         for (imgfile, imgobj) in thumbsrow:
             photo   = PhotoImage(imgobj)
             link    = Button(row, image=photo)
-            
+
             handler = lambda fileImpacted=imgfile: singleClick(link, imgdir, fileImpacted)
             link.bind('<Button-1>', singleClick)
 #KBR            handler = lambda savefile=imgfile: ViewOne(imgdir, savefile)
@@ -804,7 +808,7 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     # A primitive viewer (see pyphoto.py for better)
     #--------------------------------------------------------------------------
-  
+
     imgdir = (len(sys.argv) > 1 and sys.argv[1]) or 'images-mixed'
     main, save = viewer(imgdir, kind=Tk)
     main.mainloop()

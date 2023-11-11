@@ -704,26 +704,31 @@ canvas = None # TODO HACK
 btnSelected = None # TODO HACK
 
 def singleClick(btn, imgdir, fileimpacted):
-  global canvas # TODO HACK
-  global tagwin # TODO HACK
-  global btnSelected # TODO HACK
-  
-  orig_color = btn.cget("background")
-  
-  if btnSelected is not None:
-    btnSelected.config(bg=orig_color, activebackground=orig_color)  
+    """
+    Single mouse click handling (selection). 
     
-  #print(f"KBR: click2 {btn} {imgdir} {fileimpacted}")
-  btnSelected = btn
-  btn.configure(relief='sunken')
-  btn.configure(bg='red',activebackground='red')
-  
-  canvas.update()
-  
-  tagwin.showImage(fileimpacted) # Notify tag window
-  
-  # TODO not updating until mouse move: why?
-  # TODO un-sunk all other buttons
+    Currently single-selection only.
+    """
+    global canvas # TODO HACK
+    global tagwin # TODO HACK
+    global btnSelected # TODO HACK
+    
+    orig_color = btn.cget("background")
+    
+    # Revert any previously selected thumbnail.
+    if btnSelected is not None:
+        btnSelected.config(bg=orig_color, activebackground=orig_color)  
+      
+    #print(f"KBR: click2 {btn} {imgdir} {fileimpacted}")
+    btnSelected = btn
+    btn.configure(relief='sunken') # TODO needs more obvious indication
+    btn.configure(bg='red',activebackground='red')
+    
+    canvas.update()
+    
+    tagwin.showImage(fileimpacted) # Notify tag window
+    
+    # TODO not updating until mouse move: why?
   
 
 ############################################################################
@@ -890,9 +895,9 @@ def onDirectoryOpen(parentwin, dirwinsize, viewsize, nothumbchanges):
         parentwin.focus_force()   # [SA] for Mac
 
 def onQuit(parentwin):
-  if tagwin is not None:
-    tagwin.destroy()
-  parentwin.destroy()
+    if tagwin is not None:
+        tagwin.destroy()
+    parentwin.destroy()
 
 def onHelp(parentwin):
     """
