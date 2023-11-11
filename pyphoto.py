@@ -873,6 +873,8 @@ def viewThumbs(imgdir,                         # open this folder
     win.bind('<Left>',  lambda event: canvas.xview_scroll(-1, 'units'))
     win.bind('<Right>', lambda event: canvas.xview_scroll(+1, 'units'))
     
+    win.bind('<Destroy>', cleanup)
+    
     win.focus()   # [SA] on Windows, make sure new window catches events now
     return win
 
@@ -895,9 +897,17 @@ def onDirectoryOpen(parentwin, dirwinsize, viewsize, nothumbchanges):
     else:
         parentwin.focus_force()   # [SA] for Mac
 
-def onQuit(parentwin):
+def cleanup(*args):
+    global tagwin
     if tagwin is not None:
         tagwin.destroy()
+        tagwin = None
+    
+def onQuit(parentwin):
+    global tagwin
+    if tagwin is not None:
+        tagwin.destroy()
+        tagwin = None
     parentwin.destroy()
 
 def onHelp(parentwin):
