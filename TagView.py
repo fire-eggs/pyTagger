@@ -1,6 +1,7 @@
 import pyexiv2
 import os
 from tkinter import *
+from tkinter.scrolledtext import *
 
 class TagView(Toplevel):
 
@@ -16,62 +17,54 @@ class TagView(Toplevel):
         Toplevel.__init__(self)
         self.title(f"Tags:{imgdir}")
         self.folder = imgdir
-        self.geometry("450x500")
+        self.geometry("550x500")
+                
+        # header row showing the filename
+        self.imgName = Label(self, text="filename here")
+        self.imgName.grid(row=0,column=0)
+
+        # 'Active' tags row
+        self.currTags = ScrolledText(self, height=7, wrap="word")
+        self.currTags.grid(row=1,column=0,pady=3,sticky='nsew')
+
+        # Add-tag row
+        addFrame = Frame(self, bg='blue')
+        addBtn = Button(addFrame, text = " Add ", command=self.addClick)
+        self.addEdit = Entry(addFrame)
+        addBtn.grid      (row=0,column=0,padx=3, pady=1)
+        self.addEdit.grid(row=0,column=1,padx=3)
+        addFrame.grid(row=2,column=0,sticky=W, pady=2, ipady=2)
+
+        # Buttons row
+        blah = Frame(self, bg='green')
+        
+        btnPrev = Button(blah, text=" Prev Image ", command=self.clickReset)
+        btnReset = Button(blah, text=" Reset ", command=self.clickReset)
+        btnWrite = Button(blah, text= " Write ", command=self.clickWrite)
+        btnNext = Button(blah, text= " Next Image ", command=self.clickWrite)
+        
+        btnPrev.grid (row=0,column=0, padx=5, pady=1)
+        btnReset.grid(row=0,column=1, padx=5)
+        btnWrite.grid(row=0,column=2, padx=5)
+        btnNext.grid (row=0,column=3, padx=5)
+        blah.grid(row=3, column=0, pady=2, ipady=2)
+
+        # Folder-wide tags row
+        self.btnFrame = ScrolledText(self, height=12, wrap="word")
+        self.btnFrame.grid(row=4,column=0,sticky='nsew',pady=3)
+
+        # Resizing rules
+        self.rowconfigure(1, weight=2)
+        self.rowconfigure(4, weight=4)
+        self.columnconfigure(0, weight=1)
+        
         self.update()
 
-        self.imgName = Label(self, text="filename here")
-        self.imgName.pack(side=TOP, fill=X)
-
-
-        aFrame = Frame(self)
-
-        self.currTags = Text(aFrame, height=10, wrap="word", yscrollcommand=lambda *args: vsbCT.set(*args))
-        vsbCT = Scrollbar(aFrame, command=self.currTags.yview)
-        vsbCT.pack(side="right", fill="y")
-        self.currTags.pack(side="left",fill="both", expand=NO)
-
-        aFrame.pack()
-        #aFrame.config(width=400,height=200)
-        #aFrame.update()
-
-        addFrame = Frame(self, bg='blue')
-        addFrame.pack(fill=X)
-
-        addBtn = Button(addFrame, text = " Add ", command=self.addClick)
-        addBtn.pack(side=LEFT, expand=NO, padx=5)
-        self.addEdit = Entry(addFrame)
-        self.addEdit.pack(side=LEFT,expand=NO)
-
-        blah = Frame(self, bg='green')
-        #blah.pack(side=BOTTOM, fill=X)
-        blah.pack(fill=X)
-
-#        test = Button(blah, text=' Test ')   # [SA] no bg= on Mac
-#        test.pack(side=RIGHT, expand=YES)
-        btnReset = Button(blah, text=" Reset ", command=self.clickReset, padx=3)
-        btnReset.pack(side=LEFT, expand=YES)
-        btnWrite = Button(blah, text= " Write ", command=self.clickWrite)
-        btnWrite.pack(side=LEFT, expand=YES)
-
-        bFrame = Frame(self)
-        self.btnFrame = Text(bFrame, wrap="word", yscrollcommand=lambda *args: vsb.set(*args))
-        vsb = Scrollbar(bFrame, command=self.btnFrame.yview)
-        vsb.pack(side="right", fill="y")
-        self.btnFrame.pack(side="left",fill="both", expand=False)
-        #self.btnFrame.config(width=400,height=200)
-
-        bFrame.pack()
-
-#        self.btnFrame = Frame(self, bg='blue')
-#        self.btnFrame.pack(side=TOP)
-#        self.btnFrame.config(width=500,height=500)
 
         self.allbtns = []
         self.currbtns = []
-
-        #self.masterTagList = {}
-
         pyexiv2.set_log_level(3) # pyexiv2 magic
+
 
     def getImgTags(self, imgfile):
         imagePath = os.path.join(self.folder, imgfile)
