@@ -2,6 +2,7 @@ import pyexiv2
 import os
 from tkinter import *
 from tkinter.scrolledtext import *
+from CreateToolTip import *
 
 class TagView(Toplevel):
 
@@ -34,6 +35,7 @@ class TagView(Toplevel):
         addBtn.grid      (row=0,column=0,padx=3, pady=1)
         self.addEdit.grid(row=0,column=1,padx=3)
         addFrame.grid(row=2,column=0,sticky=W, pady=2, ipady=2)
+        CreateToolTip(addBtn,"Create and add a new tag to the image")
 
         # Buttons row
         blah = Frame(self, bg='green')
