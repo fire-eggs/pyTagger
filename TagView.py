@@ -145,6 +145,10 @@ class TagView(Toplevel):
         self.currTagList.remove(atag)
         self.updateCurrentTags()
 
+    def favoriteCurrentTag(self, atag):
+        # add the clicked tag to the favorites
+        print(f"Favoriting: {atag}")
+
     def updateCurrentTags(self):
         #print(f"current tags:{self.currTagList}")
         # delete all existing widgets
@@ -155,8 +159,10 @@ class TagView(Toplevel):
         if len(self.currTagList) > 0:
             for atag in sorted(list(self.currTagList)):
 
-                handler = lambda whichtag=atag: self.removeCurrentTag(whichtag)
-                abtn = Button(self.currTags, text=f" {atag} ", padx=2, pady=2, command=handler)
+                handler1 = lambda whichtag=atag: self.removeCurrentTag(whichtag)
+                abtn = Button(self.currTags, text=f" {atag} ", padx=2, pady=2, command=handler1)
+                # Right-click favorites the tag : binding magic
+                abtn.bind("<Button-3>", lambda e,c=atag: self.favoriteCurrentTag(c))
                 # TODO tooltip
 
                 self.currTags.window_create("insert", window=abtn, padx=2, pady=2)
@@ -204,6 +210,8 @@ class TagView(Toplevel):
             handler = lambda whichtag=atag: self.addToCurrentTag(whichtag)
             abtn = Button(self.btnFrame, text=f" {atag} ", padx=2, pady=2, command=handler)
             self.btnFrame.window_create("insert", window=abtn, padx=2, pady=2)
+            # Right-click favorites the tag : binding magic
+            abtn.bind("<Button-3>", lambda e,c=atag: self.favoriteCurrentTag(c))
 
             self.allbtns.append(abtn) # TODO for gc: is this necessary?
         self.btnFrame.configure(state="disabled")
