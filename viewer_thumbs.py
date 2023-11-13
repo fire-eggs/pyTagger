@@ -185,6 +185,8 @@ VERSION 2.0, Sep-2017 [SA]: standalone release of book's PyGadgets.
 import os, sys, math, mimetypes, shutil, errno, pickle, traceback, io
 import base64 # KBR marker image
 from tkinter import *
+import pillow_avif                # KBR avif support
+import pillow_svg.SvgImagePlugin  # KBR svg support
 from PIL import Image                   # <== required for thumbs
 from PIL.ImageTk import PhotoImage      # <== required for JPEG display
 from PIL.ExifTags import TAGS           # <== required for orientation tag [2.2]
