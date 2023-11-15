@@ -291,7 +291,7 @@ else:
 openDialog = Directory(**openargs)
 
 trace = print  # or lambda *x: None
-appname = 'PyPhoto 2.2'
+appname = 'PyTagger 0.1'
 
 
 ############################################################################
