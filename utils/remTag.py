@@ -56,16 +56,16 @@ def remTag(imagePath, tag):
 image_exts = ['.jpg','.jpeg','.png','.webp']  
 
 if len(sys.argv) < 3:
-  print("Usage: addtag <path> <tag>")
+  print("Usage: remTag <path> <tag>")
   exit()
 
 path = sys.argv[1]  
 if not os.path.exists(path):
-  print(f"not exist")
+  print(f"'{path}' does not exist")
   exit()
 
 tag = sys.argv[2]
-print(f"Adding: '{tag}'")
+print(f"Removing: '{tag}'")
 
 pyexiv2.set_log_level(3)
   
@@ -83,9 +83,7 @@ for f in os.listdir(path):
   if not ok:
     print(f'{f} : error')
 
-  if tag not in taglist:
-    print(f"{f} doesn't have tag")
-  else:
+  if tag in taglist:
     remTag(file_path,tag)
         
 #  if len(taglist) != 0:
