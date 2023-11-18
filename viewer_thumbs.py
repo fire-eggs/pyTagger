@@ -183,10 +183,10 @@ VERSION 2.0, Sep-2017 [SA]: standalone release of book's PyGadgets.
 """
 
 import os, sys, math, mimetypes, shutil, errno, pickle, traceback, io
-import base64 # KBR marker image
+import base64 # KBR watermark images
 from tkinter import *
 import pillow_avif                # KBR avif support
-import pillow_svg.SvgImagePlugin  # KBR svg support
+#KBR TODO doesn't work import pillow_svg.SvgImagePlugin  # KBR svg support
 from PIL import Image                   # <== required for thumbs
 from PIL.ImageTk import PhotoImage      # <== required for JPEG display
 from PIL.ExifTags import TAGS           # <== required for orientation tag [2.2]
@@ -469,6 +469,11 @@ def makeThumbs_pklfile(imgdir, size, pklfile, busywindow, nothumbchanges):
     for imgfile in sortedimgs:                                # for all files, by name
         if not isImageFileName(imgfile):                      # skip: avoid pil exception
             continue
+
+        unsupported_formats = (".gif",".svg",".avif") # KBR currently un-tag-able image formats
+        if imgfile.lower().endswith(unsupported_formats):
+            continue
+
 
         # check cache+timestamps
         if ((imgfile in thumbcache) and 
