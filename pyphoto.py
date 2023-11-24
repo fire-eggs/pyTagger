@@ -249,6 +249,8 @@ from tkinter.messagebox import showerror
 
 from TagView import *
 
+TSIZE = 160 # KBR magic number size of thumbnail
+
 # [SA] require PIL/Pillow install
 pillowerror = """
 Pillow 3rd-party package is not installed.
@@ -732,6 +734,92 @@ def singleClick(btn, imgdir, fileimpacted, tagwin):
     # TODO not updating until mouse move: why?
   
 
+def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
+    
+    win = canvas.master
+    
+    width, height = dirwinsize                      # [SA] new configs model
+    numthumbs = len(thumbs)
+    
+    if numthumbs == 0:                                      # no-image dir?
+        numcols = numrows = 0                               # [SA] avoid / 0 exc
+    else:
+        if not numcols:
+            numcols = int(width / TSIZE) # TODO KBR magic number see above
+        numrows = int(math.ceil(numthumbs / numcols))       # 3.x true div
+
+    # max w|h: thumb=(name, obj), obj.size=(width, height)
+    if numthumbs == 0:
+        linksize = 0   # [SA] avoid empty-seq max() exc
+    else:
+        linksize = max(max(thumb[1].size) for thumb in thumbs)
+
+    fullsize = (0, 0,                                   # upper left  X,Y
+        (linksize * numcols), (linksize * numrows) )    # lower right X,Y
+    canvas.config(scrollregion=fullsize)                # scrollable area size
+
+    rowpos = 0
+    savephotos = []
+    allbtns = []
+    while thumbs:
+        thumbsrow, thumbs = thumbs[:numcols], thumbs[numcols:]
+        colpos = 0
+        for (imgfile, imgobj) in thumbsrow:
+            photo = PhotoImage(imgobj)
+            link  = Button(canvas, image=photo, relief="raised")
+            allbtns.append(link) # keep reference to avoid gc
+            
+            def handler1(event, _link=link, _imgfile=imgfile):
+                singleClick(_link, win.imgdir, _imgfile, tagwin)
+            link.bind('<Button-1>', handler1)
+
+            def handler2(event, _imgfile=imgfile):
+                ViewOne(win.imgdir, _imgfile, dirwinsize, viewsize, canvas.master, nothumbchanges)
+                #ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
+            link.bind('<Double-1>', handler2)
+            
+            link.pack(side=LEFT, expand=YES)
+            canvas.create_window(colpos, rowpos, anchor=NW,
+                    window=link, width=linksize, height=linksize)
+            colpos += linksize
+            savephotos.append(photo)
+        rowpos += linksize
+
+    return savephotos    
+
+def simpleFilter(tagwin, thumbs, taggedonly):
+    subthumbs = []
+    for thumbTuple in thumbs:
+        ok, tags = tagwin.getImgTags(thumbTuple[0])
+        if taggedonly:
+            if ok and len(tags):
+                subthumbs.append(thumbTuple)
+        else:
+            if ok and not len(tags):
+                subthumbs.append(thumbTuple)
+    return subthumbs                
+
+def onViewAll(win, canvas):
+    canvas.delete('all')    
+    dirwinsize = (int(canvas.cget('width')), int(canvas.cget('height')))
+    numcols = None
+    thumbs = win.fullthumbs
+    win.savephotos = buildCanvas(canvas, dirwinsize, numcols, thumbs, win.tagwin)
+
+def onTaggedOnly(win):
+    canvas.delete('all')    
+    subthumbs = simpleFilter(win.tagwin, win.fullthumbs, True)
+    dirwinsize = (int(canvas.cget('width')), int(canvas.cget('height')))
+    numcols = None
+    win.savephotos = buildCanvas(canvas, dirwinsize, numcols, subthumbs, win.tagwin)
+
+def onUnTaggedOnly(win):
+    canvas.delete('all')    
+    subthumbs = simpleFilter(win.tagwin, win.fullthumbs, False)
+    dirwinsize = (int(canvas.cget('width')), int(canvas.cget('height')))
+    numcols = None
+    win.savephotos = buildCanvas(canvas, dirwinsize, numcols, subthumbs, win.tagwin)
+
 ############################################################################
 # View the thumbnails window for an initial or chosen directory
 ############################################################################
@@ -764,6 +852,7 @@ def viewThumbs(imgdir,                         # open this folder
     
         
     win = kind()
+    win.imgdir = imgdir
     helptxt = 'D=open'
     win.title('%s: %s (%s)' % (appname, imgdir, helptxt))
     trySetWindowIcon(win, 'icons', 'pygadgets')   # [SA] for win+lin
@@ -784,7 +873,6 @@ def viewThumbs(imgdir,                         # open this folder
     tagwin.initScan()
 
     # make or load thumbs ==> [(imgfile, imgobj)]
-    TSIZE = 160
     thumbs = makeThumbs(imgdir,                             # all images in folder
                         size=(TSIZE, TSIZE),                    # fixed thumbnails size
 #KBR                        size=(128, 128),                    # fixed thumbnails size
@@ -794,7 +882,6 @@ def viewThumbs(imgdir,                         # open this folder
                         
     tagwin.doneScan()
     
-    numthumbs = len(thumbs)
 #KBR    
 #    if numthumbs == 0:                                      # no-image dir?
 #        numcols = numrows = 0                               # [SA] avoid / 0 exc
@@ -809,64 +896,72 @@ def viewThumbs(imgdir,                         # open this folder
     canvas = ScrolledCanvas(win)                    # init viewable window size
     canvas.config(height=height, width=width)       # changes if user resizes
 
-    if numthumbs == 0:                                      # no-image dir?
-        numcols = numrows = 0                               # [SA] avoid / 0 exc
-    else:
-        if not numcols:
-            numcols = int(width / TSIZE) # TODO KBR magic number see above
-        numrows = int(math.ceil(numthumbs / numcols))       # 3.x true div
+    win.savephotos = buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin)
+    win.fullthumbs = thumbs
+    
+    #numthumbs = len(thumbs)
+    #if numthumbs == 0:                                      # no-image dir?
+        #numcols = numrows = 0                               # [SA] avoid / 0 exc
+    #else:
+        #if not numcols:
+            #numcols = int(width / TSIZE) # TODO KBR magic number see above
+        #numrows = int(math.ceil(numthumbs / numcols))       # 3.x true div
 
+    ## max w|h: thumb=(name, obj), obj.size=(width, height)
+    #if numthumbs == 0:
+        #linksize = 0   # [SA] avoid empty-seq max() exc
+    #else:
+        #linksize = max(max(thumb[1].size) for thumb in thumbs)
+##    trace(linksize)
+    #fullsize = (0, 0,                                   # upper left  X,Y
+        #(linksize * numcols), (linksize * numrows) )    # lower right X,Y
+    #canvas.config(scrollregion=fullsize)                # scrollable area size
 
-    # max w|h: thumb=(name, obj), obj.size=(width, height)
-    if numthumbs == 0:
-        linksize = 0   # [SA] avoid empty-seq max() exc
-    else:
-        linksize = max(max(thumb[1].size) for thumb in thumbs)
-#    trace(linksize)
-    fullsize = (0, 0,                                   # upper left  X,Y
-        (linksize * numcols), (linksize * numrows) )    # lower right X,Y
-    canvas.config(scrollregion=fullsize)                # scrollable area size
-
-    rowpos = 0
-    savephotos = []
-    allbtns = []
-    while thumbs:
-        thumbsrow, thumbs = thumbs[:numcols], thumbs[numcols:]
-        colpos = 0
-        for (imgfile, imgobj) in thumbsrow:
-            photo = PhotoImage(imgobj)
-            link  = Button(canvas, image=photo, relief="raised")
-            allbtns.append(link) # keep reference to avoid gc
-            #if imgfile == '2009-VaioP.jpg':
-            #  print(f"{link} {imgfile}")
+    #rowpos = 0
+    #savephotos = []
+    #allbtns = []
+    #while thumbs:
+        #thumbsrow, thumbs = thumbs[:numcols], thumbs[numcols:]
+        #colpos = 0
+        #for (imgfile, imgobj) in thumbsrow:
+            #photo = PhotoImage(imgobj)
+            #link  = Button(canvas, image=photo, relief="raised")
+            #allbtns.append(link) # keep reference to avoid gc
+            ##if imgfile == '2009-VaioP.jpg':
+            ##  print(f"{link} {imgfile}")
             
-            def handler1(event, _link=link, _imgfile=imgfile):
-              #print(f"{_link} {_imgfile}")
-                singleClick(_link, imgdir, _imgfile, tagwin)
-            link.bind('<Button-1>', handler1)
+            #def handler1(event, _link=link, _imgfile=imgfile):
+              ##print(f"{_link} {_imgfile}")
+                #singleClick(_link, imgdir, _imgfile, tagwin)
+            #link.bind('<Button-1>', handler1)
 
-            def handler2(event, _imgfile=imgfile):
-                ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
-            link.bind('<Double-1>', handler2)
+            #def handler2(event, _imgfile=imgfile):
+                #ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
+            #link.bind('<Double-1>', handler2)
             
-#            def handler(_imgfile=imgfile): 
-#                ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
-#            link.config(command=handler, width=linksize, height=linksize)
+##            def handler(_imgfile=imgfile): 
+##                ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
+##            link.config(command=handler, width=linksize, height=linksize)
 
-            link.pack(side=LEFT, expand=YES)
-            canvas.create_window(colpos, rowpos, anchor=NW,
-                    window=link, width=linksize, height=linksize)
-            colpos += linksize
-            savephotos.append(photo)
-        rowpos += linksize
+            #link.pack(side=LEFT, expand=YES)
+            #canvas.create_window(colpos, rowpos, anchor=NW,
+                    #window=link, width=linksize, height=linksize)
+            #colpos += linksize
+            #savephotos.append(photo)
+        #rowpos += linksize
 
-    win.savephotos = savephotos   # keep references to all to avoid gc
+    #win.savephotos = savephotos   # keep references to all to avoid gc
     win.tagwin     = tagwin
+    win.imgdir     = imgdir
     
     # bind keys/events for this directory-view window
     win.bind('<KeyPress-d>', 
         lambda event: onDirectoryOpen(win, dirwinsize, viewsize, nothumbchanges))
 
+    win.bind('<KeyPress-t>', lambda event: onTaggedOnly(win)  )
+    win.bind('<KeyPress-u>', lambda event: onUnTaggedOnly(win))
+    win.bind('<KeyPress-r>', lambda event: onViewAll(win, canvas))
+    
     # [SA] bind arrow keys to scroll canvas too (tbd: increment?)
     win.bind('<Up>',    lambda event: canvas.yview_scroll(-1, 'units'))
     win.bind('<Down>',  lambda event: canvas.yview_scroll(+1, 'units'))
