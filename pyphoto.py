@@ -717,7 +717,10 @@ def singleClick(btn, imgdir, fileimpacted):
     
     # Revert any previously selected thumbnail.
     if btnSelected is not None:
-        btnSelected.config(bg=orig_color, activebackground=orig_color)  
+        try:
+            btnSelected.config(bg=orig_color, activebackground=orig_color)  
+        except:
+            pass # button may be in another window?
       
     #print(f"KBR: click2 {btn} {imgdir} {fileimpacted}")
     btnSelected = btn
