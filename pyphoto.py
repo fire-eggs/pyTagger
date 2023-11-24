@@ -248,7 +248,6 @@ from tkinter.filedialog import SaveAs, Directory, askdirectory
 from tkinter.messagebox import showerror
 
 from TagView import *
-tagwin = None
 
 # [SA] require PIL/Pillow install
 pillowerror = """
@@ -703,14 +702,13 @@ class ViewOne(Toplevel):
 canvas = None # TODO HACK
 btnSelected = None # TODO HACK
 
-def singleClick(btn, imgdir, fileimpacted):
+def singleClick(btn, imgdir, fileimpacted, tagwin):
     """
     Single mouse click handling (selection). 
     
     Currently single-selection only.
     """
     global canvas # TODO HACK
-    global tagwin # TODO HACK
     global btnSelected # TODO HACK
     
     orig_color = btn.cget("background")
@@ -763,8 +761,6 @@ def viewThumbs(imgdir,                         # open this folder
     --------------------------------------------------------------
     """
     global canvas # TODO HACK
-
-    global tagwin # TODO HACK
     
         
     win = kind()
@@ -846,11 +842,11 @@ def viewThumbs(imgdir,                         # open this folder
             
             def handler1(event, _link=link, _imgfile=imgfile):
               #print(f"{_link} {_imgfile}")
-              singleClick(_link, imgdir, _imgfile)
+                singleClick(_link, imgdir, _imgfile, tagwin)
             link.bind('<Button-1>', handler1)
 
             def handler2(event, _imgfile=imgfile):
-              ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
+                ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
             link.bind('<Double-1>', handler2)
             
 #            def handler(_imgfile=imgfile): 
@@ -865,7 +861,8 @@ def viewThumbs(imgdir,                         # open this folder
         rowpos += linksize
 
     win.savephotos = savephotos   # keep references to all to avoid gc
-
+    win.tagwin     = tagwin
+    
     # bind keys/events for this directory-view window
     win.bind('<KeyPress-d>', 
         lambda event: onDirectoryOpen(win, dirwinsize, viewsize, nothumbchanges))
@@ -876,7 +873,7 @@ def viewThumbs(imgdir,                         # open this folder
     win.bind('<Left>',  lambda event: canvas.xview_scroll(-1, 'units'))
     win.bind('<Right>', lambda event: canvas.xview_scroll(+1, 'units'))
     
-    win.bind('<Destroy>', cleanup)
+    #win.bind('<Destroy>', cleanup)
     
     win.focus()   # [SA] on Windows, make sure new window catches events now
     return win
@@ -900,17 +897,9 @@ def onDirectoryOpen(parentwin, dirwinsize, viewsize, nothumbchanges):
     else:
         parentwin.focus_force()   # [SA] for Mac
 
-def cleanup(*args):
-    global tagwin
-    if tagwin is not None:
-        tagwin.destroy()
-        tagwin = None
-    
 def onQuit(parentwin):
-    global tagwin
-    if tagwin is not None:
-        tagwin.destroy()
-        tagwin = None
+    if parentwin.tagwin is not None:
+        parentwin.tagwin.destroy()
     parentwin.destroy()
 
 def onHelp(parentwin):
