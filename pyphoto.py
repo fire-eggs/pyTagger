@@ -968,7 +968,7 @@ def viewThumbs(imgdir,                         # open this folder
     win.bind('<Left>',  lambda event: canvas.xview_scroll(-1, 'units'))
     win.bind('<Right>', lambda event: canvas.xview_scroll(+1, 'units'))
     
-    #win.bind('<Destroy>', cleanup)
+    win.bind('<Destroy>', lambda event: cleanup(win))
     
     win.focus()   # [SA] on Windows, make sure new window catches events now
     return win
@@ -977,7 +977,9 @@ def viewThumbs(imgdir,                         # open this folder
 ############################################################################
 # Utilities, having multiple class and non-class clients
 ############################################################################
-
+def cleanup(win):
+    if win.tagwin:
+        win.tagwin.destroy()
 
 def onDirectoryOpen(parentwin, dirwinsize, viewsize, nothumbchanges):
     """
