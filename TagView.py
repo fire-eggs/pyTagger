@@ -182,9 +182,16 @@ class TagView(Toplevel):
         # New image: initialize the "current" and "original" taglists      
         self.currTagList.clear()
         self.origCurrTagList.clear()
-        temp = [i.lower() for i in taglist if i] # remove empty strings; all lowercase
-        self.currTagList.update(sorted(temp)) 
-        self.origCurrTagList.update(self.currTagList)
+
+        ok, taglist = self.getImgTags(imgname)
+#        if not ok:
+#            return # TODO cannot work with image. Need to reset things.
+
+        #print(f"found tags:{taglist}")
+        if ok:
+            temp = [i.lower() for i in taglist if i] # remove empty strings; all lowercase
+            self.currTagList.update(sorted(temp)) 
+            self.origCurrTagList.update(self.currTagList)
 
         self.updateCurrentTags()
 
