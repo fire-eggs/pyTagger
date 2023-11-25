@@ -73,7 +73,7 @@ for f in os.listdir(path):
   
   # image files only
   ext = os.path.splitext(f)[1]
-  if ext not in image_exts:
+  if ext.lower() not in image_exts:
     continue
   
   #print(f'{f}--------------------------')
