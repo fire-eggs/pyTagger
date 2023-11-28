@@ -54,6 +54,7 @@ class FilterView(Toplevel):
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=2)
         self.update()
+        self.tag1.focus() # start focus at first entry
 
     def clearItem(self, target):
         target.configure(state="normal")
@@ -84,12 +85,12 @@ class FilterView(Toplevel):
             case 'entry4':
                 target = self.tag4
             case _:
-                target = None
+                return
 
         target.configure(state="normal")
         target.delete('1.0', END)
-        abtn = Button(target, text=f" {atag} ")
-        # TODO consider binding to remove?
+        # click the button to remove it
+        abtn = Button(target, text=f" {atag} ", command=lambda: self.clearItem(target))
         target.window_create("insert", window=abtn, padx=2, pady=2)
         target.configure(state="disabled")
 
