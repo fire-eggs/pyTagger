@@ -887,83 +887,21 @@ def viewThumbs(imgdir,                         # open this folder
 
     # make or load thumbs ==> [(imgfile, imgobj)]
     thumbs = makeThumbs(imgdir,                             # all images in folder
-                        size=(TSIZE, TSIZE),                    # fixed thumbnails size
-#KBR                        size=(128, 128),                    # fixed thumbnails size
+                        size=(TSIZE, TSIZE),                # fixed thumbnails size
                         busywindow=win,                     # announce in GUI
                         nothumbchanges=nothumbchanges,      # don't detect changes? 
                         _tagswin=tagwin)
                         
     tagwin.doneScan()
-    
-#KBR    
-#    if numthumbs == 0:                                      # no-image dir?
-#        numcols = numrows = 0                               # [SA] avoid / 0 exc
-#    else:
-#        if not numcols:
-#            numcols = int(math.ceil(math.sqrt(numthumbs)))  # fixed or N x N
-#        numrows = int(math.ceil(numthumbs / numcols))       # 3.x true div
-
-    #print(f"KBR:{dirwinsize}")
 
     width, height = dirwinsize                      # [SA] new configs model
     canvas = ScrolledCanvas(win)                    # init viewable window size
     canvas.config(height=height, width=width)       # changes if user resizes
 
+    # NOTE: keeping reference to avoid gc
     win.savephotos = buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin)
     win.fullthumbs = thumbs
     
-    #numthumbs = len(thumbs)
-    #if numthumbs == 0:                                      # no-image dir?
-        #numcols = numrows = 0                               # [SA] avoid / 0 exc
-    #else:
-        #if not numcols:
-            #numcols = int(width / TSIZE) # TODO KBR magic number see above
-        #numrows = int(math.ceil(numthumbs / numcols))       # 3.x true div
-
-    ## max w|h: thumb=(name, obj), obj.size=(width, height)
-    #if numthumbs == 0:
-        #linksize = 0   # [SA] avoid empty-seq max() exc
-    #else:
-        #linksize = max(max(thumb[1].size) for thumb in thumbs)
-##    trace(linksize)
-    #fullsize = (0, 0,                                   # upper left  X,Y
-        #(linksize * numcols), (linksize * numrows) )    # lower right X,Y
-    #canvas.config(scrollregion=fullsize)                # scrollable area size
-
-    #rowpos = 0
-    #savephotos = []
-    #allbtns = []
-    #while thumbs:
-        #thumbsrow, thumbs = thumbs[:numcols], thumbs[numcols:]
-        #colpos = 0
-        #for (imgfile, imgobj) in thumbsrow:
-            #photo = PhotoImage(imgobj)
-            #link  = Button(canvas, image=photo, relief="raised")
-            #allbtns.append(link) # keep reference to avoid gc
-            ##if imgfile == '2009-VaioP.jpg':
-            ##  print(f"{link} {imgfile}")
-            
-            #def handler1(event, _link=link, _imgfile=imgfile):
-              ##print(f"{_link} {_imgfile}")
-                #singleClick(_link, imgdir, _imgfile, tagwin)
-            #link.bind('<Button-1>', handler1)
-
-            #def handler2(event, _imgfile=imgfile):
-                #ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
-            #link.bind('<Double-1>', handler2)
-            
-##            def handler(_imgfile=imgfile): 
-##                ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
-##            link.config(command=handler, width=linksize, height=linksize)
-
-            #link.pack(side=LEFT, expand=YES)
-            #canvas.create_window(colpos, rowpos, anchor=NW,
-                    #window=link, width=linksize, height=linksize)
-            #colpos += linksize
-            #savephotos.append(photo)
-        #rowpos += linksize
-
-    #win.savephotos = savephotos   # keep references to all to avoid gc
     win.tagwin     = tagwin
     win.imgdir     = imgdir
     
@@ -1008,7 +946,7 @@ def onDirectoryOpen(parentwin, dirwinsize, viewsize, nothumbchanges):
         parentwin.focus_force()   # [SA] for Mac
 
 def onQuit(parentwin):
-    if parentwin.tagwin is not None:
+    if parentwin.tagwin:
         parentwin.tagwin.destroy()
     parentwin.destroy()
 
