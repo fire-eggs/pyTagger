@@ -54,9 +54,17 @@ class FilterView(Toplevel):
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=2)
         self.update()
+
+    def clearItem(self, target):
+        target.configure(state="normal")
+        target.delete('1.0', END)
+        target.configure(state="disabled")
             
     def clickReset(self):
-        pass
+        self.clearItem(self.tag1)
+        self.clearItem(self.tag2)
+        self.clearItem(self.tag3)
+        self.clearItem(self.tag4)
     
     def clickWrite(self):
         pass
