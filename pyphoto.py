@@ -248,6 +248,7 @@ from tkinter.filedialog import SaveAs, Directory, askdirectory
 from tkinter.messagebox import showerror
 
 from TagView import *
+from FilterView import *
 
 TSIZE = 160 # KBR magic number size of thumbnail
 
@@ -820,6 +821,12 @@ def onUnTaggedOnly(win):
     numcols = None
     win.savephotos = buildCanvas(canvas, dirwinsize, numcols, subthumbs, win.tagwin)
 
+def onFilter(parentwin):
+    tagw = parentwin.tagwin
+    masterlist = tagw.getAllTags()
+    fview = FilterView(masterlist)
+    parentwin.filterView = fview
+
 ############################################################################
 # View the thumbnails window for an initial or chosen directory
 ############################################################################
@@ -865,6 +872,12 @@ def viewThumbs(imgdir,                         # open this folder
     quit.pack(side=RIGHT, expand=YES)
     help = Button(tools, text=' Help ', command=lambda: onHelp(win))
     help.pack(side=LEFT, expand=YES)
+    tagg = Button(tools, text=' Tagged ', command=lambda: onTaggedOnly(win))
+    tagg.pack(side=LEFT, expand=YES)
+    untag = Button(tools, text=' Untagged ', command=lambda: onUnTaggedOnly(win))
+    untag.pack(side=LEFT, expand=YES)
+    filt = Button(tools, text=' Filter ', command=lambda: onFilter(win))
+    filt.pack(side=LEFT, expand=YES)
 
     # [SA] question=? but portable, help key in all gadgets
     win.bind('<KeyPress-question>', lambda event: onHelp(win))
