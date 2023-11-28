@@ -131,6 +131,9 @@ class TagView(Toplevel):
     def initScan(self):
         self.masterTagList.clear()
 
+    def getAllTags(self):
+        return self.masterTagList
+    
     def setTags(self, taglist):
         # incremental testing: initialize to a specific set of tags
         self.masterTagList.update(taglist)
