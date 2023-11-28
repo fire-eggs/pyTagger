@@ -176,12 +176,6 @@ class TagView(Toplevel):
         #print(f"User clicked: {imgname}")
         self.imgName.config(text=f" {imgname} ")
 
-        ok, taglist = self.getImgTags(imgname)
-        if not ok:
-            return # TODO cannot work with image. Need to reset things.
-
-        #print(f"found tags:{taglist}")
-
         # New image: initialize the "current" and "original" taglists      
         self.currTagList.clear()
         self.origCurrTagList.clear()
