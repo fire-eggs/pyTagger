@@ -119,7 +119,7 @@ class FilterView(Toplevel):
         target.configure(state="normal")
         target.delete('1.0', END)
         # click the button to remove it
-        abtn = Button(target, text=f" {atag} ", command=lambda: self.clearItem(target))
+        abtn = Button(target, text=f" {atag} ", command=lambda: self.clearItem(index))
         target.window_create("insert", window=abtn, padx=2, pady=2)
         target.configure(state="disabled")
         focustarget.focus() # set focus to the NEXT entry
