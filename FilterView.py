@@ -82,6 +82,7 @@ class FilterView(Toplevel):
         # TODO reset boolean widgets
     
     def clickWrite(self):
+        clauses = [i.lower() for i in self.clauses if i] # remove empty strings; all lowercase
         if self.callback is not None:
             self.callback(self.clauses)
 #        for i in range(4):
