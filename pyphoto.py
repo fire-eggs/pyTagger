@@ -788,6 +788,17 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
 
     return savephotos    
 
+def complexFilter(tagwin, thumbs, searchlist):
+    searchset = set(searchlist)
+    subthumbs = []
+    for thumbtuple in thumbs:
+        ok, imagetags = tagwin.getImgTags(thumbtuple[0])
+        if ok and len(imagetags):
+            # true: all search tags are in the image tag set (a AND b AND c)
+            if searchset <= set(imagetags):
+                subthumbs.append(thumbtuple)
+    return subthumbs
+
 def simpleFilter(tagwin, thumbs, taggedonly):
     subthumbs = []
     for thumbTuple in thumbs:
@@ -817,6 +828,14 @@ def onTaggedOnly(win):
 def onUnTaggedOnly(win):
     canvas.delete('all')    
     subthumbs = simpleFilter(win.tagwin, win.fullthumbs, False)
+    dirwinsize = (int(canvas.cget('width')), int(canvas.cget('height')))
+    numcols = None
+    win.savephotos = buildCanvas(canvas, dirwinsize, numcols, subthumbs, win.tagwin)
+
+def searchExec(win, taglist): # TODO Need 'win' as a callback arg
+    tagw = win.tagwin
+    canvas.delete('all')
+    subthumbs = complexFilter(win.tagwin, win.fullthumbs, taglist)
     dirwinsize = (int(canvas.cget('width')), int(canvas.cget('height')))
     numcols = None
     win.savephotos = buildCanvas(canvas, dirwinsize, numcols, subthumbs, win.tagwin)
@@ -880,7 +899,7 @@ def viewThumbs(imgdir,                         # open this folder
     untag.pack(side=LEFT, expand=YES)
     filt = Button(tools, text=' Filter ', command=lambda: onFilter(win))
     filt.pack(side=LEFT, expand=YES)
-
+    
     # [SA] question=? but portable, help key in all gadgets
     win.bind('<KeyPress-question>', lambda event: onHelp(win))
 
@@ -895,7 +914,7 @@ def viewThumbs(imgdir,                         # open this folder
                         _tagswin=tagwin)
                         
     tagwin.doneScan()
-
+    
     width, height = dirwinsize                      # [SA] new configs model
     canvas = ScrolledCanvas(win)                    # init viewable window size
     canvas.config(height=height, width=width)       # changes if user resizes
