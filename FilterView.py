@@ -1,4 +1,5 @@
 # TODO first clause could be NOT!
+# TODO title bar is incorrect (shows app title, not current thumbwin title)
 
 from tkinter import *
 from tkinter.scrolledtext import *
@@ -8,7 +9,7 @@ class FilterView(Toplevel):
     
     masterTagList = set()
     
-    def __init__(self, alltags, callbackfunction):
+    def __init__(self, alltags, callbackfunction, callbackarg):
         Toplevel.__init__(self)
         self.masterTagList = alltags
         self.geometry("500x500")
@@ -61,6 +62,7 @@ class FilterView(Toplevel):
         self.clauses = ['','','','']
         self.widgets = [self.tag1, self.tag2, self.tag3, self.tag4]
         self.callback = callbackfunction
+        self.callbackarg = callbackarg
         
     def clearItem(self, index):
         target = self.widgets[index]
@@ -70,32 +72,22 @@ class FilterView(Toplevel):
         self.clauses[index] = ''
         
     def clickReset(self):
-        self.clearItem(0)
-        self.clearItem(1)
-        self.clearItem(2)
-        self.clearItem(3)
-#        self.clearItem(self.tag1)
-#        self.clearItem(self.tag2)
-#        self.clearItem(self.tag3)
-#        self.clearItem(self.tag4)
+        for i in range(4):
+            self.clearItem(i)
         self.tag1.focus() # start focus at first entry
         # TODO reset boolean widgets
     
     def clickWrite(self):
         clauses = [i.lower() for i in self.clauses if i] # remove empty strings; all lowercase
         if self.callback is not None:
-            self.callback(self.clauses)
-#        for i in range(4):
-#            val = self.clauses[i]
-#            if val != '':
-#                print(f"{self.clauses[i]}")
+            self.callback(self.callbackarg, clauses)
         pass
     
     def addToCurrentTag(self, atag):
         # put the selected tag in the current Entry
         who = self.focus_get()
         who2 = str(who).split(".")[-1]
-        print(f"{who2}")
+        #print(f"{who2}")
         match who2:
             case 'entry1':
                 target = self.tag1

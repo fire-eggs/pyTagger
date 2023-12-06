@@ -826,7 +826,7 @@ def onFilter(parentwin):
         return
     tagw = parentwin.tagwin
     masterlist = tagw.getAllTags()
-    fview = FilterView(masterlist)
+    fview = FilterView(masterlist, searchExec, parentwin)
     parentwin.filterview = fview
 
 ############################################################################
