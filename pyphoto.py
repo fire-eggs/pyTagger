@@ -822,10 +822,12 @@ def onUnTaggedOnly(win):
     win.savephotos = buildCanvas(canvas, dirwinsize, numcols, subthumbs, win.tagwin)
 
 def onFilter(parentwin):
+    if parentwin.filterview: # filter is active
+        return
     tagw = parentwin.tagwin
     masterlist = tagw.getAllTags()
     fview = FilterView(masterlist)
-    parentwin.filterView = fview
+    parentwin.filterview = fview
 
 ############################################################################
 # View the thumbnails window for an initial or chosen directory
@@ -904,6 +906,7 @@ def viewThumbs(imgdir,                         # open this folder
     
     win.tagwin     = tagwin
     win.imgdir     = imgdir
+    win.filterview = None
     
     # bind keys/events for this directory-view window
     win.bind('<KeyPress-d>', 
@@ -931,6 +934,8 @@ def viewThumbs(imgdir,                         # open this folder
 def cleanup(win):
     if win.tagwin:
         win.tagwin.destroy()
+    if win.filterview:
+        win.filterview.destroy()
 
 def onDirectoryOpen(parentwin, dirwinsize, viewsize, nothumbchanges):
     """
@@ -946,8 +951,7 @@ def onDirectoryOpen(parentwin, dirwinsize, viewsize, nothumbchanges):
         parentwin.focus_force()   # [SA] for Mac
 
 def onQuit(parentwin):
-    if parentwin.tagwin:
-        parentwin.tagwin.destroy()
+    cleanup(parentwin)
     parentwin.destroy()
 
 def onHelp(parentwin):
