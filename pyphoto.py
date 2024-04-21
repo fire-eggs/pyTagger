@@ -356,13 +356,15 @@ class ViewOne(Toplevel):
                  dirwinsize=(),             # thumbs: pass along on "D"
                  viewsize=(),               # fixed display size 
                  opener=None,               # refocus on errors?
-                 nothumbchanges=False):     # thumbs: pass along on "D"
+                 nothumbchanges=False,      # thumbs: pass along on "D"
+                 tagw=None):
 
         Toplevel.__init__(self)
         self.setTitle(imgfile)
         trySetWindowIcon(self, 'icons', 'pygadgets')   # [SA] for win+lin
         self.viewsize = viewsize                  # fixed scaling size
-
+        self.tagwin = tagw
+        
         # try to load image
         imgpath = os.path.join(imgdir, imgfile)   # img file to open
         try:
@@ -686,7 +688,7 @@ class ViewOne(Toplevel):
             self.setTitle(nextfile)
             self.trueimage = nextimgpil               # save for ops on image
             self.drawImageFirst()                     # new image, same win/canvas
-            tagwin.showImage(nextfile) # KBR update tagview
+            self.tagwin.showImage(nextfile) # KBR update tagview
             
         """
         # or new window: this worked but was too twitchy...
@@ -775,7 +777,7 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
             link.bind('<Button-1>', handler1)
 
             def handler2(event, _imgfile=imgfile):
-                ViewOne(win.imgdir, _imgfile, dirwinsize, viewsize, canvas.master, nothumbchanges)
+                ViewOne(win.imgdir, _imgfile, dirwinsize, viewsize, canvas.master, nothumbchanges, tagwin)
                 #ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
             link.bind('<Double-1>', handler2)
             
