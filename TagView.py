@@ -119,11 +119,14 @@ class TagView(Toplevel):
 
         imgfile = self.imgName.cget("text").strip()
         imagePath = os.path.join(self.folder, imgfile)
-        # TODO exceptions?
+        
         with pyexiv2.Image(imagePath) as img:
             # pyexiv2 magic
-            img.modify_xmp({'Xmp.dc.subject': ", ".join(self.currTagList)})      
-            img.modify_xmp({'Xmp.lr.hierarchicalSubject': ", ".join(self.currTagList)}) 
+            try:
+                img.modify_xmp({'Xmp.dc.subject': taglist}) #", ".join(taglist)})      
+                #img.modify_xmp({'Xmp.lr.hierarchicalSubject': ", ".join(taglist)})      
+            except:
+                print(' *error*') # TODO
 
         self.origCurrTagList.clear()        
         self.origCurrTagList.update(self.currTagList) # new 'original'

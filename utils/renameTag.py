@@ -38,10 +38,10 @@ def replaceTag(imagePath, findtag, newtag):
             taglist = xmp['Xmp.dc.subject']
         except:
             taglist = []
-        try:
-            taglist2 = xmp['Xmp.lr.hierarchicalSubject']
-        except:
-            taglist2 = []
+#        try:
+#            taglist2 = xmp['Xmp.lr.hierarchicalSubject']
+#        except:
+#            taglist2 = []
 
         # use a set in case 'newtag' already exists!
         tagset = set([i.lower() for i in taglist])
@@ -52,8 +52,8 @@ def replaceTag(imagePath, findtag, newtag):
 
         # pyexiv2 magic
         try:
-            img.modify_xmp({'Xmp.dc.subject': ", ".join(taglist)})      
-            img.modify_xmp({'Xmp.lr.hierarchicalSubject': ", ".join(taglist)})      
+            img.modify_xmp({'Xmp.dc.subject': taglist}) #", ".join(taglist)})      
+            #img.modify_xmp({'Xmp.lr.hierarchicalSubject': ", ".join(taglist)})      
         except:
             print(' *error*')
 

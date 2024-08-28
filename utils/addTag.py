@@ -43,8 +43,11 @@ def addTag(imagePath, tag):
       print(imagePath)
 #      xmp['Xmp.dc.subject'] = taglist
       # pyexiv2 magic
-      img.modify_xmp({'Xmp.dc.subject': ", ".join(taglist)})      
-      img.modify_xmp({'Xmp.lr.hierarchicalSubject': ", ".join(taglist)})      
+      try:
+          img.modify_xmp({'Xmp.dc.subject': taglist}) #", ".join(taglist)})      
+          #img.modify_xmp({'Xmp.lr.hierarchicalSubject': ", ".join(taglist)})      
+      except:
+          print(' *error*')
 #      print(xmp)
 #      img.modify_xmp(xmp)
       

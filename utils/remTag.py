@@ -40,12 +40,15 @@ def remTag(imagePath, tag):
       if len(taglist) == 0:
         # TODO need to figure out how to remove the key altogether
         img.modify_xmp({'Xmp.dc.subject': ""})      
-        img.modify_xmp({'Xmp.lr.hierarchicalSubject': ""})      
+        #img.modify_xmp({'Xmp.lr.hierarchicalSubject': ""})      
       else:  
 #      xmp['Xmp.dc.subject'] = taglist
         # pyexiv2 magic
-        img.modify_xmp({'Xmp.dc.subject': ", ".join(taglist)})      
-        img.modify_xmp({'Xmp.lr.hierarchicalSubject': ", ".join(taglist)})      
+        try:
+            img.modify_xmp({'Xmp.dc.subject': taglist}) #", ".join(taglist)})      
+            #img.modify_xmp({'Xmp.lr.hierarchicalSubject': ", ".join(taglist)})      
+        except:
+            print(' *error*')
 #      print(xmp)
 #      img.modify_xmp(xmp)
       
