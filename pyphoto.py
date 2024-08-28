@@ -705,7 +705,8 @@ class ViewOne(Toplevel):
 # End class ViewOne
 
 canvas = None # TODO HACK
-btnSelected = None # TODO HACK
+btnSelected = [] # TODO HACK
+unSelectedColor = None
 
 def singleClick(btn, imgdir, fileimpacted, tagwin):
     """
@@ -715,30 +716,44 @@ def singleClick(btn, imgdir, fileimpacted, tagwin):
     """
     global canvas # TODO HACK
     global btnSelected # TODO HACK
+    global unSelectedColor # TODO HACK
     
-    orig_color = btn.cget("background")
+    #orig_color = btn.cget("background")
     
     # Revert any previously selected thumbnail.
-    if btnSelected is not None:
+    if len(btnSelected) != 0:
+      for btn2 in btnSelected:
         try:
-            btnSelected.config(bg=orig_color, activebackground=orig_color)  
+            btn2.config(bg=unSelectedColor, activebackground=unSelectedColor)  
         except:
             pass # button may be in another window?
+      canvas.update()
+
       
-    #print(f"KBR: click2 {btn} {imgdir} {fileimpacted}")
-    btnSelected = btn
-    btn.configure(relief='sunken') # TODO needs more obvious indication
-    btn.configure(bg='red',activebackground='red')
-    
-    canvas.update()
+    #print(f"KBR: click {btn} {imgdir} {fileimpacted}")
+    btnSelected = []
+    btnSelected.append(btn)
+    selectBtn(btn)
     
     tagwin.showImage(fileimpacted) # Notify tag window
     
     # TODO not updating until mouse move: why?
-  
 
+def selectBtn(btn):
+    global canvas
+    btn.configure(relief='sunken') # TODO needs more obvious indication
+    btn.configure(bg='red',activebackground='red')
+    canvas.update()
+  
+def ctrlClick(btn, imgdir, fileimpacted, tagwin):
+    global btnSelected
+    btnSelected.append(btn) # add to selected buttons
+    selectBtn(btn)
+    # TODO tagwin.showImage(fileimpacted) # Notify tag window - multi-select
+        
 def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
-    
+    global unSelectedColor
+
     win = canvas.master
     
     width, height = dirwinsize                      # [SA] new configs model
@@ -775,6 +790,10 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
             def handler1(event, _link=link, _imgfile=imgfile):
                 singleClick(_link, win.imgdir, _imgfile, tagwin)
             link.bind('<Button-1>', handler1)
+            
+            def handler3(event, _link=link, _imgfile=imgfile):
+                ctrlClick(_link, win.imgdir, _imgfile, tagwin)
+            link.bind('<Control-Button-1>', handler3)
 
             def handler2(event, _imgfile=imgfile):
                 ViewOne(win.imgdir, _imgfile, dirwinsize, viewsize, canvas.master, nothumbchanges, tagwin)
@@ -788,6 +807,7 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
             savephotos.append(photo)
         rowpos += linksize
 
+    unSelectedColor = allbtns[0].cget("background")
     return savephotos    
 
 def complexFilter(tagwin, thumbs, searchlist):
