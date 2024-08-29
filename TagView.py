@@ -1,3 +1,16 @@
+"""
+View and edit tags for selected image(s).
+
+A) When one image is selected, the current tags are the image's tags. When
+   the tags are written, the image tags are set to the current tags.
+B) When multiple images are selected, the current tags are the *intersection*
+   of all image tags. I.e. each image may have tags which are not shown in the
+   "current" tag list. When the tags are written, each image has the *changes*
+   to the common tags applied.
+
+NOTE: any modifications to the "current tags" are lost if an image is added or
+removed!
+"""
 import pyexiv2
 import os
 from tkinter import *
@@ -9,6 +22,7 @@ class TagView(Toplevel):
     masterTagList = set()
     origCurrTagList = set()
     currTagList = set()
+    image_names = []
 
     """
     ---------------------------------------------------------------------------
@@ -114,22 +128,41 @@ class TagView(Toplevel):
         self.currTagList.update(self.origCurrTagList)
         self.updateCurrentTags()
 
-    def clickWrite(self):
-        # Write button clicked: write current taglist to the file.
-
-        imgfile = self.imgName.cget("text").strip()
-        imagePath = os.path.join(self.folder, imgfile)
-        
+    def writeTags(self, imgname, taglist):
+      # write tags to an image
+        imagePath = os.path.join(self.folder, imgname)
         with pyexiv2.Image(imagePath) as img:
             # pyexiv2 magic
             try:
-                img.modify_xmp({'Xmp.dc.subject': taglist}) #", ".join(taglist)})      
-                #img.modify_xmp({'Xmp.lr.hierarchicalSubject': ", ".join(taglist)})      
-            except:
-                print(' *error*') # TODO
-
-        self.origCurrTagList.clear()        
-        self.origCurrTagList.update(self.currTagList) # new 'original'
+                img.modify_xmp({'Xmp.dc.subject': taglist})
+            except Exception as e:
+                print(e) # TODO
+                return False
+        return True
+      
+    def clickWrite(self):
+      if len(self.image_names) == 0: # TODO disable write btn if no images
+        return
+        
+      if len(self.image_names) == 1:
+        # Write button clicked: write current taglist to the file.
+        self.writeTags(self.image_names[0], list(self.currTagList)) # TODO failure
+        
+      else:
+        # Update all images with *changes* to taglist
+        #print("Write for multiple images")
+        #print(f"Curr: {self.currTagList} Orig: {self.origCurrTagList}")
+        adds = self.currTagList.difference(self.origCurrTagList) # tags to add
+        rems = self.origCurrTagList.difference(self.currTagList) # tags to remove
+        #print(f"Adds: {adds} Removes: {rems}")
+        for imgname in self.image_names:
+            ok, currtags = self.getImgTags(imgname)
+            currtags2 = {i.lower() for i in currtags if i} # TODO merge into getImgTags?
+            currtags2.difference_update(rems)
+            currtags2.update(adds)
+            #print(f"{imgname}: before:{currtags} after:{currtags2}")
+            self.writeTags(imgname, list(currtags2)) # TODO failure
+      self.origCurrTagList = self.currTagList.copy() # new 'original'
 
     def initScan(self):
         self.masterTagList.clear()
@@ -156,7 +189,7 @@ class TagView(Toplevel):
         print(f"Favoriting: {atag}")
 
     def updateCurrentTags(self):
-        #print(f"current tags:{self.currTagList}")
+        # print(f"current tags:{self.currTagList}")
         # delete all existing widgets
         self.currTags.configure(state="normal") # magic
         self.currTags.delete('1.0', END) 
@@ -178,6 +211,8 @@ class TagView(Toplevel):
     def showImage(self, imgname):
         #print(f"User clicked: {imgname}")
         self.imgName.config(text=f" {imgname} ")
+        self.image_names = []
+        self.image_names.append(imgname)
 
         # New image: initialize the "current" and "original" taglists      
         self.currTagList.clear()
@@ -194,6 +229,28 @@ class TagView(Toplevel):
             self.origCurrTagList.update(self.currTagList)
 
         self.updateCurrentTags()
+
+    def anotherImage(self, imgname):
+      # User has added another image to the selection set.
+      if imgname in self.image_names: # no double-add
+        return
+        
+      self.image_names.append(imgname)
+      self.imgName.config(text=f"*Multiple images*")
+      
+      # determine the new "common tags" list
+      ok, taglist = self.getImgTags(imgname) # tags for new image
+#        if not ok:
+#            return # TODO cannot work with image. Need to reset things.
+      
+      if ok:
+        temp = set(i.lower() for i in taglist if i) # remove empty strings; all lowercase
+        inter = temp.intersection(self.origCurrTagList)
+        self.currTagList.clear()
+        self.currTagList.update(sorted(inter))
+        self.origCurrTagList = self.currTagList.copy()
+        
+      self.updateCurrentTags()
 
     def addToFullTag(self, newtag):
         self.masterTagList.append(newtag)

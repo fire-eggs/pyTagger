@@ -418,7 +418,7 @@ class ViewOne(Toplevel):
         # [SA] add actual/scaled size (actual=former version's only mode)
         self.bind('<KeyPress-a>', lambda event: self.drawImageSized(self.trueimage))
         self.bind('<KeyPress-s>', lambda event: self.drawImageFirst())
-
+        
         self.focus()   # on Windows, make sure new window catches events now
 
         # [SA] set min size as partial fix for odd window shinkage on zoomout
@@ -713,7 +713,7 @@ def singleClick(btn, imgdir, fileimpacted, tagwin):
     global canvas # TODO HACK
     global btnSelected # TODO HACK
     global unSelectedColor # TODO HACK
-    
+        
     # Revert any previously selected thumbnail.
     if len(btnSelected) != 0:
       for btn2 in btnSelected:
@@ -722,7 +722,7 @@ def singleClick(btn, imgdir, fileimpacted, tagwin):
         except:
             pass # button may be in another window?
       canvas.update()
-
+      
     #print(f"KBR: click {btn} {imgdir} {fileimpacted}")
     btnSelected = []
     btnSelected.append(btn)
@@ -742,7 +742,8 @@ def ctrlClick(btn, imgdir, fileimpacted, tagwin):
     global btnSelected
     btnSelected.append(btn) # add to selected buttons
     selectBtn(btn)
-    # TODO tagwin.showImage(fileimpacted) # Notify tag window - multi-select
+    tagwin.anotherImage(fileimpacted) # Notify tag window
+    # TODO ctrl+click to remove existing image from list
         
 def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
     global unSelectedColor
@@ -792,7 +793,7 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
                 ViewOne(win.imgdir, _imgfile, dirwinsize, viewsize, canvas.master, nothumbchanges, tagwin)
                 #ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
             link.bind('<Double-1>', handler2)
-            
+
         # TODO ctrl+a to select all current images
             
             link.pack(side=LEFT, expand=YES)
