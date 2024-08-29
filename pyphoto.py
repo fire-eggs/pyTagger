@@ -709,16 +709,10 @@ btnSelected = [] # TODO HACK
 unSelectedColor = None
 
 def singleClick(btn, imgdir, fileimpacted, tagwin):
-    """
-    Single mouse click handling (selection). 
-    
-    Currently single-selection only.
-    """
+    # Single mouse click handling (selection). 
     global canvas # TODO HACK
     global btnSelected # TODO HACK
     global unSelectedColor # TODO HACK
-    
-    #orig_color = btn.cget("background")
     
     # Revert any previously selected thumbnail.
     if len(btnSelected) != 0:
@@ -729,7 +723,6 @@ def singleClick(btn, imgdir, fileimpacted, tagwin):
             pass # button may be in another window?
       canvas.update()
 
-      
     #print(f"KBR: click {btn} {imgdir} {fileimpacted}")
     btnSelected = []
     btnSelected.append(btn)
@@ -799,6 +792,8 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
                 ViewOne(win.imgdir, _imgfile, dirwinsize, viewsize, canvas.master, nothumbchanges, tagwin)
                 #ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
             link.bind('<Double-1>', handler2)
+            
+        # TODO ctrl+a to select all current images
             
             link.pack(side=LEFT, expand=YES)
             canvas.create_window(colpos, rowpos, anchor=NW,
