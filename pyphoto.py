@@ -817,9 +817,13 @@ def complexFilter(tagwin, thumbs, searchlist):
     return subthumbs
 
 def simpleFilter(tagwin, thumbs, taggedonly):
+  # identify tagged / untagged
     subthumbs = []
     for thumbTuple in thumbs:
         ok, tags = tagwin.getImgTags(thumbTuple[0])
+        
+        tags = [i.lower() for i in tags if i] # remove empty strings; all lowercase
+        
         if taggedonly:
             if ok and len(tags):
                 subthumbs.append(thumbTuple)
