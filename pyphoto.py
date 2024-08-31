@@ -814,8 +814,11 @@ def complexFilter(tagwin, thumbs, searchlist):
     for thumbtuple in thumbs:
         ok, imagetags = tagwin.getImgTags(thumbtuple[0])
         if ok and len(imagetags):
+            # TODO should be in TagView.py
+            taglist = [i.lower() for i in imagetags if i] # remove empty strings; all lowercase
+            
             # true: all search tags are in the image tag set (a AND b AND c)
-            if searchset <= set(imagetags):
+            if searchset <= set(taglist):
                 subthumbs.append(thumbtuple)
     return subthumbs
 
