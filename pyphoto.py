@@ -803,7 +803,9 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
             savephotos.append(photo)
         rowpos += linksize
 
-    unSelectedColor = allbtns[0].cget("background")
+    if unSelectedColor == None and len(allbtns) > 0:
+      unSelectedColor = allbtns[0].cget("background")
+      
     return savephotos    
 
 def complexFilter(tagwin, thumbs, searchlist):
