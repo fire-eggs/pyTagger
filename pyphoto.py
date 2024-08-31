@@ -766,6 +766,8 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
     else:
         linksize = max(max(thumb[1].size) for thumb in thumbs)
 
+    linksize += 8 # add some padding around the image for highlight
+    
     fullsize = (0, 0,                                   # upper left  X,Y
         (linksize * numcols), (linksize * numrows) )    # lower right X,Y
     canvas.config(scrollregion=fullsize)                # scrollable area size
@@ -795,8 +797,9 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
             link.bind('<Double-1>', handler2)
 
         # TODO ctrl+a to select all current images
+        # TODO shift+click to select range of images
             
-            link.pack(side=LEFT, expand=YES)
+            #link.pack(side=LEFT, expand=YES, padx=4, pady=4) # appears to be unnecessary?
             canvas.create_window(colpos, rowpos, anchor=NW,
                     window=link, width=linksize, height=linksize)
             colpos += linksize
