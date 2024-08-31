@@ -64,6 +64,8 @@ class FilterView(Toplevel):
         self.callback = callbackfunction
         self.callbackarg = callbackarg
         
+        self.protocol("WM_DELETE_WINDOW", self.onClosing)
+        
     def clearItem(self, index):
         target = self.widgets[index]
         target.configure(state="normal")
@@ -134,6 +136,11 @@ class FilterView(Toplevel):
 
         self.btnFrame.configure(state="disabled")
 
+    def onClosing(self):
+      # TODO HACK inform the main win we're being closed
+      self.callback(self.callbackarg,None)
+      self.destroy()
+      
 def testcall(taglist):
     for i in range(4):
         val = taglist[i]

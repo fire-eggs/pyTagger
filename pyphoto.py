@@ -802,7 +802,7 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
             colpos += linksize
             savephotos.append(photo)
         rowpos += linksize
-
+        
     if unSelectedColor == None and len(allbtns) > 0:
       unSelectedColor = allbtns[0].cget("background")
       
@@ -860,6 +860,11 @@ def onUnTaggedOnly(win):
     win.savephotos = buildCanvas(canvas, dirwinsize, numcols, subthumbs, win.tagwin)
 
 def searchExec(win, taglist): # TODO Need 'win' as a callback arg
+    if taglist == None:
+      # TODO HACK track that the dialog was closed to allow multiple creates
+      win.filterview = None
+      return
+      
     tagw = win.tagwin
     canvas.delete('all')
     subthumbs = complexFilter(win.tagwin, win.fullthumbs, taglist)
