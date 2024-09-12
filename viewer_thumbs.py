@@ -485,6 +485,8 @@ def makeThumbs_pklfile(imgdir, size, pklfile, busywindow, nothumbchanges):
             imgobj = Image.open(io.BytesIO(imgdat))           # pickled data => pil obj
             thumbs.append((imgfile, imgobj))                  # in py-sorted() order
 
+            markstate = tagwin.getTags(imgfile) # load tags for cached thumb
+
         else:
             # new or changed: make new thumb
 #            print('Making thumb for', imgfile)
