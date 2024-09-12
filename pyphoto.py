@@ -781,6 +781,7 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
         for (imgfile, imgobj) in thumbsrow:
             photo = PhotoImage(imgobj)
             link  = Button(canvas, image=photo, relief="raised")
+            link.imgfile = imgfile
             allbtns.append(link) # keep reference to avoid gc
             
             def handler1(event, _link=link, _imgfile=imgfile):
@@ -796,7 +797,6 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
                 #ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
             link.bind('<Double-1>', handler2)
 
-        # TODO ctrl+a to select all current images
         # TODO shift+click to select range of images
             
             #link.pack(side=LEFT, expand=YES, padx=4, pady=4) # appears to be unnecessary?
@@ -809,7 +809,7 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
     if unSelectedColor == None and len(allbtns) > 0:
       unSelectedColor = allbtns[0].cget("background")
       
-    return savephotos    
+    return savephotos, allbtns
 
 def complexFilter(tagwin, thumbs, searchlist):
     searchset = set(searchlist)
@@ -846,21 +846,21 @@ def onViewAll(win, canvas):
     dirwinsize = (int(canvas.cget('width')), int(canvas.cget('height')))
     numcols = None
     thumbs = win.fullthumbs
-    win.savephotos = buildCanvas(canvas, dirwinsize, numcols, thumbs, win.tagwin)
+    win.savephotos, win.currbtns = buildCanvas(canvas, dirwinsize, numcols, thumbs, win.tagwin)
 
 def onTaggedOnly(win):
     canvas.delete('all')    
     subthumbs = simpleFilter(win.tagwin, win.fullthumbs, True)
     dirwinsize = (int(canvas.cget('width')), int(canvas.cget('height')))
     numcols = None
-    win.savephotos = buildCanvas(canvas, dirwinsize, numcols, subthumbs, win.tagwin)
+    win.savephotos, win.currbtns = buildCanvas(canvas, dirwinsize, numcols, subthumbs, win.tagwin)
 
 def onUnTaggedOnly(win):
     canvas.delete('all')    
     subthumbs = simpleFilter(win.tagwin, win.fullthumbs, False)
     dirwinsize = (int(canvas.cget('width')), int(canvas.cget('height')))
     numcols = None
-    win.savephotos = buildCanvas(canvas, dirwinsize, numcols, subthumbs, win.tagwin)
+    win.savephotos, win.currbtns = buildCanvas(canvas, dirwinsize, numcols, subthumbs, win.tagwin)
 
 def searchExec(win, taglist): # TODO Need 'win' as a callback arg
     if taglist == None:
@@ -873,7 +873,7 @@ def searchExec(win, taglist): # TODO Need 'win' as a callback arg
     subthumbs = complexFilter(win.tagwin, win.fullthumbs, taglist)
     dirwinsize = (int(canvas.cget('width')), int(canvas.cget('height')))
     numcols = None
-    win.savephotos = buildCanvas(canvas, dirwinsize, numcols, subthumbs, win.tagwin)
+    win.savephotos, win.currbtns = buildCanvas(canvas, dirwinsize, numcols, subthumbs, win.tagwin)
 
 def onFilter(parentwin):
     if parentwin.filterview: # filter is active
@@ -882,6 +882,20 @@ def onFilter(parentwin):
     masterlist = tagw.getAllTags()
     fview = FilterView(masterlist, searchExec, parentwin)
     parentwin.filterview = fview
+
+def selectAll(win):
+    global btnSelected
+    tagw = win.tagwin
+    btnSelected = []
+    count = len(win.savephotos)
+    if count < 1:
+      return
+      
+    tagw.showImage(win.currbtns[0].imgfile) # HACK have to start with an image/tag set
+    for btn in win.currbtns:
+      btnSelected.append(btn)
+      selectBtn(btn)
+      tagw.anotherImage(btn.imgfile) # Notify tag window
 
 ############################################################################
 # View the thumbnails window for an initial or chosen directory
@@ -955,7 +969,7 @@ def viewThumbs(imgdir,                         # open this folder
     canvas.config(height=height, width=width)       # changes if user resizes
 
     # NOTE: keeping reference to avoid gc
-    win.savephotos = buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin)
+    win.savephotos, win.currbtns = buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin)
     win.fullthumbs = thumbs
     
     win.tagwin     = tagwin
@@ -977,6 +991,8 @@ def viewThumbs(imgdir,                         # open this folder
     win.bind('<Right>', lambda event: canvas.xview_scroll(+1, 'units'))
     
     win.bind('<Destroy>', lambda event: cleanup(win))
+    
+    win.bind('<Control-a>', lambda event: selectAll(win))
     
     win.focus()   # [SA] on Windows, make sure new window catches events now
     return win
