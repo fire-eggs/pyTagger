@@ -467,14 +467,10 @@ def makeThumbs_pklfile(imgdir, size, pklfile, busywindow, nothumbchanges):
     thumbs = []
     sortedimgs = sortedDisplayOrder(imgdir)                   # ignore case/plat diffs
     for imgfile in sortedimgs:                                # for all files, by name
-        if not isImageFileName(imgfile):                      # skip: avoid pil exception
+      
+        if not isTaggableImage(imgfile): # don't show un-tag-able files
             continue
-
-        unsupported_formats = (".gif",".svg",".avif") # KBR currently un-tag-able image formats
-        if imgfile.lower().endswith(unsupported_formats):
-            continue
-
-
+            
         # check cache+timestamps
         if ((imgfile in thumbcache) and 
             (nothumbchanges or 
@@ -584,6 +580,14 @@ def isImageFileName(filename):
     mimetype = mimetypes.guess_type(filename)[0]                    # (type?, encoding?)
     return mimetype != None and mimetype.split('/')[0] == 'image'   # e.g., 'image/jpeg'
 
+unsupported_formats = (".gif",".svg",".avif") # KBR currently un-tag-able image formats
+
+def isTaggableImage(filename):
+  if not isImageFileName(filename):
+    return False
+  if filename.lower().endswith(unsupported_formats):
+    return False
+  return True
 
 def modtimeMatch(imgfile, imgdir, thumbdir=None, thumbtime=None, allowance=2):
     """

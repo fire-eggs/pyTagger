@@ -252,6 +252,14 @@ class TagView(Toplevel):
         
       self.updateCurrentTags()
 
+    def removeImage(self, imgname):
+      # User has removed an image from the selection set
+      if imgname not in self.image_names:
+        return
+        
+      self.image_names.remove(imgname)
+      # TODO the list of common tags may have changed - need to rebuild the set from scratch   
+
     def addToFullTag(self, newtag):
         self.masterTagList.append(newtag)
         self.doneScan()
