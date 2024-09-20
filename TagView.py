@@ -55,17 +55,17 @@ class TagView(Toplevel):
         # Buttons row
         blah = Frame(self, bg='green')
         
-        btnPrev = Button(blah, text=" Prev Image ", command=self.clickPrev)
-        #btnPrev["state"] = DISABLED # TODO pending a file list mediator for thumbs/tag views
+        self.btnPrev = Button(blah, text=" Prev Image ", command=self.clickPrev)
+        self.btnPrev["state"] = DISABLED # TODO pending a file list mediator for thumbs/tag views
         btnReset = Button(blah, text=" Reset ", command=self.clickReset)
         btnWrite = Button(blah, text= " Write ", command=self.clickWrite)
-        btnNext = Button(blah, text= " Next Image ", command=self.clickNext)
-        #btnNext["state"] = DISABLED # TODO pending a file list mediator for thumbs/tag views
+        self.btnNext = Button(blah, text= " Next Image ", command=self.clickNext)
+        self.btnNext["state"] = DISABLED # TODO pending a file list mediator for thumbs/tag views
         
-        btnPrev.grid (row=0,column=0, padx=5, pady=1)
+        self.btnPrev.grid (row=0,column=0, padx=5, pady=1)
         btnReset.grid(row=0,column=1, padx=5)
         btnWrite.grid(row=0,column=2, padx=5)
-        btnNext.grid (row=0,column=3, padx=5)
+        self.btnNext.grid (row=0,column=3, padx=5)
         blah.grid(row=3, column=0, pady=2, ipady=2)
 
         # Folder-wide tags row
@@ -308,6 +308,9 @@ class TagView(Toplevel):
 
     def ActiveViewOne(self, whichview):
       self.whoisit = whichview
+      self.btnPrev["state"] = NORMAL
+      self.btnNext["state"] = NORMAL
+      
       
 if __name__ == '__main__': 
 
