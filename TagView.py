@@ -57,10 +57,12 @@ class TagView(Toplevel):
         
         self.btnPrev = Button(blah, text=" Prev Image ", command=self.clickPrev)
         self.btnPrev["state"] = DISABLED # TODO pending a file list mediator for thumbs/tag views
+        CreateToolTip(self.btnPrev,"[PgUp] Navigate to the previous image")
         btnReset = Button(blah, text=" Reset ", command=self.clickReset)
         btnWrite = Button(blah, text= " Write ", command=self.clickWrite)
         self.btnNext = Button(blah, text= " Next Image ", command=self.clickNext)
         self.btnNext["state"] = DISABLED # TODO pending a file list mediator for thumbs/tag views
+        CreateToolTip(self.btnNext,"[PgDn] Navigate to the next image")
         
         self.btnPrev.grid (row=0,column=0, padx=5, pady=1)
         btnReset.grid(row=0,column=1, padx=5)
@@ -83,6 +85,9 @@ class TagView(Toplevel):
         self.allbtns = []
         self.currbtns = []
         pyexiv2.set_log_level(3) # pyexiv2 magic
+
+        self.bind_all("<Next>", lambda event: self.clickNext())        
+        self.bind_all("<Prior>", lambda event: self.clickPrev())
 
 
     def getImgTags(self, imgfile):
