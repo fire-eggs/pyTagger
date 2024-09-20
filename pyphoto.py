@@ -5,10 +5,9 @@
 # TODO how to update 'T' marker when tagged status changes?
 # TODO how to add taggability for GIF?
 # TODO create my own icon to replace pygadgets.gif
-# TODO what's that fancier/themable tkinter extension?
+# TODO what's that fancier/themable tkinter extension [CustomTkinter] also tkinter.ttk
 # TODO quit/close consistancy (only the first window's quit button actually shuts down)
 # TODO two copies of scrolledcanvas?
-# TODO two copies of ViewOne?
 # TODO canvas resize: want to show the "current" thumbs (e.g. filtered) not necessarily all
 # TODO canvas resize should do nothing if numcols doesn't change
 # TODO when image removed from selection, need to rebuild common tags list
@@ -149,6 +148,8 @@ def updateCanvas(canvas, btns, tagwin): # TODO canvas class method
     global unSelectedColor
 
     canvas.delete('all')
+    if btns is None:
+      return # nothing to do
     numthumbs = len(btns)
     if numthumbs == 0:
       return # nothing to do
@@ -286,15 +287,16 @@ def simpleFilter(tagwin, btns, taggedonly):
     return subthumbs                
 
 def onViewAll(win, canvas):
-    updateCanvas(canvas, win.currbtns, win.tagwin)
+    win.currbtns = win.allbtns
+    updateCanvas(canvas, win.allbtns, win.tagwin)
 
 def onTaggedOnly(win):
-    subthumbs = simpleFilter(win.tagwin, win.currbtns, True)
-    updateCanvas(canvas, subthumbs, win.tagwin)
+    win.currbtns = simpleFilter(win.tagwin, win.allbtns, True)
+    updateCanvas(canvas, win.currbtns, win.tagwin)
 
 def onUnTaggedOnly(win):
-    subthumbs = simpleFilter(win.tagwin, win.currbtns, False)
-    updateCanvas(canvas, subthumbs, win.tagwin)
+    win.currbtns = simpleFilter(win.tagwin, win.allbtns, False)
+    updateCanvas(canvas, win.currbtns, win.tagwin)
 
 def searchExec(win, taglist): # TODO Need 'win' as a callback arg
     if taglist == None:
@@ -302,8 +304,8 @@ def searchExec(win, taglist): # TODO Need 'win' as a callback arg
       win.filterview = None
       return
       
-    subthumbs = complexFilter(win.tagwin, win.currbtns, taglist)
-    updateCanvas(canvas, subthumbs, win.tagwin)
+    win.currbtns = complexFilter(win.tagwin, win.allbtns, taglist)
+    updateCanvas(canvas, win.currbtns, win.tagwin)
 
 def onFilter(parentwin):
     if parentwin.filterview: # filter is active
@@ -321,8 +323,8 @@ def selectAll(win):
     if count < 1:
       return
       
-    tagw.showImage(win.currbtns[0].imgfile) # HACK have to start with an image/tag set
-    for btn in win.currbtns:
+    tagw.showImage(win.allbtns[0].imgfile) # HACK have to start with an image/tag set
+    for btn in win.allbtns:
       btnSelected.append(btn)
       selectBtn(btn)
       tagw.anotherImage(btn.imgfile) # Notify tag window
@@ -330,8 +332,7 @@ def selectAll(win):
 def resize(win,event):
   global canvas # HACK
   if canvas is not None:
-    # TODO this resets to all the buttons, want only the actual current buttons which aren't tracked
-    updateCanvas(canvas, win.master.currbtns, win.master.tagwin)
+    updateCanvas(canvas, canvas.master.currbtns, win.master.tagwin)
     
 ############################################################################
 # View the thumbnails window for an initial or chosen directory
@@ -405,8 +406,11 @@ def viewThumbs(imgdir,                         # open this folder
     canvas.config(height=height, width=width)       # changes if user resizes
 
     # NOTE: keeping reference to avoid gc
-    win.savephotos, win.currbtns = buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin)
+    win.currbtns = None
+    win.savephotos, win.allbtns = buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin)
     win.fullthumbs = thumbs
+    win.currbtns = win.allbtns
+    
     
     win.tagwin     = tagwin
     win.imgdir     = imgdir
