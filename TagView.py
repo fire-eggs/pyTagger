@@ -23,6 +23,7 @@ class TagView(Toplevel):
     origCurrTagList = set()
     currTagList = set()
     image_names = []
+    whoisit = None    # any active ViewOne window
 
     """
     ---------------------------------------------------------------------------
@@ -54,12 +55,12 @@ class TagView(Toplevel):
         # Buttons row
         blah = Frame(self, bg='green')
         
-        btnPrev = Button(blah, text=" Prev Image ", command=self.clickReset)
-        btnPrev["state"] = DISABLED # TODO pending a file list mediator for thumbs/tag views
+        btnPrev = Button(blah, text=" Prev Image ", command=self.clickPrev)
+        #btnPrev["state"] = DISABLED # TODO pending a file list mediator for thumbs/tag views
         btnReset = Button(blah, text=" Reset ", command=self.clickReset)
         btnWrite = Button(blah, text= " Write ", command=self.clickWrite)
-        btnNext = Button(blah, text= " Next Image ", command=self.clickWrite)
-        btnNext["state"] = DISABLED # TODO pending a file list mediator for thumbs/tag views
+        btnNext = Button(blah, text= " Next Image ", command=self.clickNext)
+        #btnNext["state"] = DISABLED # TODO pending a file list mediator for thumbs/tag views
         
         btnPrev.grid (row=0,column=0, padx=5, pady=1)
         btnReset.grid(row=0,column=1, padx=5)
@@ -139,6 +140,14 @@ class TagView(Toplevel):
                 print(e) # TODO
                 return False
         return True
+
+    def clickNext(self):
+      if self.whoisit is not None:
+        self.whoisit.onNextImage(None)
+        
+    def clickPrev(self):
+      if self.whoisit is not None:
+        self.whoisit.onPrevImage(None)
       
     def clickWrite(self):
       if len(self.image_names) == 0: # TODO disable write btn if no images
@@ -297,6 +306,9 @@ class TagView(Toplevel):
             self.addToFullTag(newtag)
             self.addEdit.delete(0, END) # clear the edit field
 
+    def ActiveViewOne(self, whichview):
+      self.whoisit = whichview
+      
 if __name__ == '__main__': 
 
     root = Tk()

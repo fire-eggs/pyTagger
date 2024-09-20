@@ -79,6 +79,7 @@ class ViewOne(Toplevel):
         trySetWindowIcon(self, 'icons', 'pygadgets')   # [SA] for win+lin
         self.viewsize = viewsize                  # fixed scaling size
         self.tagwin = tagw
+        self.tagwin.ActiveViewOne(self)
         
         # try to load image
         imgpath = os.path.join(imgdir, imgfile)   # img file to open
