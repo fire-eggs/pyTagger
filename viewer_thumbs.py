@@ -750,78 +750,73 @@ def makeThumbs_subdir(imgdir, size, subdir, busywindow):
     return thumbs
 
 
-###############################################################################
-# A very primitive photo viewer (see PyPhoto for much more functionality)
-###############################################################################
+# ###############################################################################
+# # A very primitive photo viewer (see PyPhoto for much more functionality)
+# ###############################################################################
+
+# class ViewOne(Toplevel):
+    # """
+    # ---------------------------------------------------------------------------
+    # Open a single image in a pop-up window when created.  PhotoImage
+    # object must be saved: images may be erased if object is reclaimed.
+    # ---------------------------------------------------------------------------
+    # """
+    # def __init__(self, imgdir, imgfile):
+        # Toplevel.__init__(self)
+        # self.title(imgfile)
+        # imgpath = os.path.join(imgdir, imgfile)
+        # imgobj  = PhotoImage(file=imgpath)
+        # Label(self, image=imgobj).pack()
+        # #print(imgpath, imgobj.width(), imgobj.height())   # size in pixels
+        # self.savephoto = imgobj                           # keep reference on me
 
 
-# KBR TODO duplicated in pyphoto.py ?
+# def singleClick(self, imgdir, fileimpacted):
+    # #print(f"KBR: click {fileimpacted}")
+    # pass
 
-class ViewOne(Toplevel):
-    """
-    ---------------------------------------------------------------------------
-    Open a single image in a pop-up window when created.  PhotoImage
-    object must be saved: images may be erased if object is reclaimed.
-    ---------------------------------------------------------------------------
-    """
-    def __init__(self, imgdir, imgfile):
-        Toplevel.__init__(self)
-        self.title(imgfile)
-        imgpath = os.path.join(imgdir, imgfile)
-        imgobj  = PhotoImage(file=imgpath)
-        Label(self, image=imgobj).pack()
-        #print(imgpath, imgobj.width(), imgobj.height())   # size in pixels
-        self.savephoto = imgobj                           # keep reference on me
+# def viewer(imgdir, kind=Toplevel, cols=None):
+    # """
+    # ---------------------------------------------------------------------------
+    # Make thumb-links window for an image directory: one thumb button per image. 
+    # Use kind=Tk to show in main app window, or Frame container (pack).  imgfile
+    # differs per loop: must save with a default.  PhotoImage objs must be saved: 
+    # erased if reclaimed.  Packs row frames (versus grids, fixed-sizes, canvas). 
+    # ---------------------------------------------------------------------------
+    # """
+    # win = kind()
+    # win.title('Viewer: ' + imgdir)
+    # quit = Button(win, text='Quit', command=win.quit, bg='beige')   # pack first
+    # quit.pack(fill=X, side=BOTTOM)                                  # so clip last
+    # thumbs = makeThumbs(imgdir)
+    # if not cols:
+        # cols = int(math.ceil(math.sqrt(len(thumbs))))     # fixed or N x N
 
+    # savephotos = []
+    # while thumbs:
+        # thumbsrow, thumbs = thumbs[:cols], thumbs[cols:]
+        # row = Frame(win)
+        # row.pack(fill=BOTH)
+        # for (imgfile, imgobj) in thumbsrow:
+            # photo   = PhotoImage(imgobj)
+            # link    = Button(row, image=photo)
 
-def singleClick(self, imgdir, fileimpacted):
-    #print(f"KBR: click {fileimpacted}")
-    pass
+            # handler = lambda fileImpacted=imgfile: singleClick(link, imgdir, fileImpacted)
+            # link.bind('<Button-1>', singleClick)
+# #KBR            handler = lambda savefile=imgfile: ViewOne(imgdir, savefile)
+# #KBR            link.config(command=handler)
 
-# KBR TODO obsolete?
-
-def viewer(imgdir, kind=Toplevel, cols=None):
-    """
-    ---------------------------------------------------------------------------
-    Make thumb-links window for an image directory: one thumb button per image. 
-    Use kind=Tk to show in main app window, or Frame container (pack).  imgfile
-    differs per loop: must save with a default.  PhotoImage objs must be saved: 
-    erased if reclaimed.  Packs row frames (versus grids, fixed-sizes, canvas). 
-    ---------------------------------------------------------------------------
-    """
-    win = kind()
-    win.title('Viewer: ' + imgdir)
-    quit = Button(win, text='Quit', command=win.quit, bg='beige')   # pack first
-    quit.pack(fill=X, side=BOTTOM)                                  # so clip last
-    thumbs = makeThumbs(imgdir)
-    if not cols:
-        cols = int(math.ceil(math.sqrt(len(thumbs))))     # fixed or N x N
-
-    savephotos = []
-    while thumbs:
-        thumbsrow, thumbs = thumbs[:cols], thumbs[cols:]
-        row = Frame(win)
-        row.pack(fill=BOTH)
-        for (imgfile, imgobj) in thumbsrow:
-            photo   = PhotoImage(imgobj)
-            link    = Button(row, image=photo)
-
-            handler = lambda fileImpacted=imgfile: singleClick(link, imgdir, fileImpacted)
-            link.bind('<Button-1>', singleClick)
-#KBR            handler = lambda savefile=imgfile: ViewOne(imgdir, savefile)
-#KBR            link.config(command=handler)
-
-            link.pack(side=LEFT, expand=YES)
-            savephotos.append(photo)
-    return win, savephotos
+            # link.pack(side=LEFT, expand=YES)
+            # savephotos.append(photo)
+    # return win, savephotos
 
 
-if __name__ == '__main__': 
+# if __name__ == '__main__': 
 
-    #--------------------------------------------------------------------------
-    # A primitive viewer (see pyphoto.py for better)
-    #--------------------------------------------------------------------------
+    # #--------------------------------------------------------------------------
+    # # A primitive viewer (see pyphoto.py for better)
+    # #--------------------------------------------------------------------------
 
-    imgdir = (len(sys.argv) > 1 and sys.argv[1]) or 'images-mixed'
-    main, save = viewer(imgdir, kind=Tk)
-    main.mainloop()
+    # imgdir = (len(sys.argv) > 1 and sys.argv[1]) or 'images-mixed'
+    # main, save = viewer(imgdir, kind=Tk)
+    # main.mainloop()
