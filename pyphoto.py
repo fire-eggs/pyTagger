@@ -2,15 +2,27 @@
 
 # TODO remember window size/position [is this per-directory?]
 # TODO thumbnail size changeable
-# TODO how to update 'T' marker when tagged status changes?
-# TODO how to add taggability for GIF?
+# TODO how to update 'T' marker when tagged status changes? [need to reload master thumb & apply watermark]
+# TODO how to add taggability for GIF? [pyexiv2 -> exiv2; exiv2 doesn't support GIF metadata]
 # TODO create my own icon to replace pygadgets.gif
 # TODO what's that fancier/themable tkinter extension [CustomTkinter] also tkinter.ttk
 # TODO quit/close consistancy (only the first window's quit button actually shuts down)
 # TODO two copies of scrolledcanvas?
-# TODO canvas resize: want to show the "current" thumbs (e.g. filtered) not necessarily all
 # TODO canvas resize should do nothing if numcols doesn't change
 # TODO when image removed from selection, need to rebuild common tags list
+# TODO tie together views, i.e. when minimize a tagview, matching thumbview should also minimize
+# TODO shift+click for extended selection
+# TODO force only one ViewOne at a time 
+# TODO closing the ViewOne isn't updating the tagview - exception on next/prev
+# TODO "global" tags, remembered and not tied to a directory (config, memory)
+# TODO the ViewOne window position changes when the image changes
+# TODO some button state is changing to 'sunken' (when double-click?)
+# TODO options for image sorting order
+
+# TODO consider a Mediator class: directoryList + activeSelection + Tag/View/Thumb views
+#   - next/prev navigation [in both ViewOne and TagView] needs to update current selection in thumb view
+#   - next/prev navigation within TagView with no active ViewOne
+
 
 import sys, math, os, traceback
 from tkinter import *
@@ -179,7 +191,7 @@ def updateCanvas(canvas, btns, tagwin): # TODO canvas class method
 def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
     global unSelectedColor
 
-    win = canvas.master
+    win = canvas.master    
     
     width, height = dirwinsize                      # [SA] new configs model
     numthumbs = len(thumbs)
