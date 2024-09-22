@@ -137,13 +137,17 @@ class TagView(Toplevel):
     def writeTags(self, imgname, taglist):
       # write tags to an image
         imagePath = os.path.join(self.folder, imgname)
-        with pyexiv2.Image(imagePath) as img:
-            # pyexiv2 magic
-            try:
-                img.modify_xmp({'Xmp.dc.subject': taglist})
-            except Exception as e:
-                print(e) # TODO
-                return False
+        try:
+          with pyexiv2.Image(imagePath) as img:
+              # pyexiv2 magic
+              try:
+                  img.modify_xmp({'Xmp.dc.subject': taglist})
+              except Exception as e:
+                  print(f"{imgname}:{e}") # TODO
+                  return False
+        except Exception as e:
+          print(f"{imgname}:{e}") # TODO
+          return False
         return True
 
     def clickNext(self):
