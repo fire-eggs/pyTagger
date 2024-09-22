@@ -4,25 +4,27 @@
 # TODO thumbnail size changeable
 # TODO how to update 'T' marker when tagged status changes? [need to reload master thumb & apply watermark]
 # TODO how to add taggability for GIF? [pyexiv2 -> exiv2; exiv2 doesn't support GIF metadata]
-# TODO create my own icon to replace pygadgets.gif
 # TODO what's that fancier/themable tkinter extension [CustomTkinter] also tkinter.ttk
 # TODO quit/close consistancy (only the first window's quit button actually shuts down)
 # TODO two copies of scrolledcanvas?
 # TODO canvas resize should do nothing if numcols doesn't change
-# TODO when image removed from selection, need to rebuild common tags list
 # TODO tie together views, i.e. when minimize a tagview, matching thumbview should also minimize
 # TODO shift+click for extended selection
 # TODO force only one ViewOne at a time 
-# TODO closing the ViewOne isn't updating the tagview - exception on next/prev
+# TODO closing the ViewOne isn't updating the tagview - exception on tagview next/prev
 # TODO "global" tags, remembered and not tied to a directory (config, memory)
 # TODO the ViewOne window position changes when the image changes
 # TODO some button state is changing to 'sunken' (when double-click?)
 # TODO options for image sorting order
+# TODO three-state toggle: tagged / untagged / all
+# TODO configurable selection color/appearance
 
 # TODO consider a Mediator class: directoryList + activeSelection + Tag/View/Thumb views
 #   - next/prev navigation [in both ViewOne and TagView] needs to update current selection in thumb view
 #   - next/prev navigation within TagView with no active ViewOne
+#   - TagView uses ViewOne for next/prev
 
+# TODO selection: how to reconcile ViewOne / imgfile vs canvas / btn vs TagView / ?
 
 import sys, math, os, traceback
 from tkinter import *
@@ -55,6 +57,7 @@ from viewer_thumbs import makeThumbs, isImageFileName, sortedDisplayOrder
 
 # [2.2] auto-rotation of tilted images, avoid Pillow too-many-open-files bug
 from viewer_thumbs import reorientImage, openImageSafely
+from ObservableList import ObservableList
 
 # [SA] Mac port (and other backports)
 RunningOnMac = sys.platform.startswith('darwin')
@@ -75,7 +78,6 @@ openDialog = Directory(**openargs)
 trace = print  # or lambda *x: None
 appname = 'PyTagger 0.1'
 
-
 ############################################################################
 # Canvas with dual scroll bars, used by both thumbnail and image windows
 ############################################################################
@@ -95,70 +97,68 @@ class ScrolledCanvas(Canvas):
         hbar.pack(side=BOTTOM, fill=X)                 # so clipped first
         self.pack(side=TOP, fill=BOTH, expand=YES)
         
-        #self.grid(row=0,column=0,sticky=tk.NW)
-        #vbar.grid(row=0,column=1,sticky=tk.E)
-        #hbar.grid(row=1,column=0,sticky=tk.S)
-
         vbar.config(command=self.yview)                # call on scroll move
         hbar.config(command=self.xview)
         self.config(yscrollcommand=vbar.set)           # call on canvas move
         self.config(xscrollcommand=hbar.set)
 
+class ThumbCanvas(ScrolledCanvas):
+
+    unselectedColor = None
+    
+    def observe_update(self, action, item):
+        #print(f"Canvas: update {action} {len(item) if item != None else 0} ")
+        if action == "clear":
+          if len(item) > 0 and isinstance(item[0], str): 
+            for btn in self.master.allbtns: # selection update from ViewOne
+              self.unSelectBtn(btn)
+          else:
+            # need to mark all 'old' buttons as not selected
+            for btn in item:
+              self.unSelectBtn(btn)
+        else:
+          if isinstance(item[0], str):
+            for btn in self.master.allbtns: # selection update from ViewOne
+              if btn.imgfile == item[0]:
+                self.selectBtn(btn)
+                return
+          else:
+            for btn in item:
+              self.selectBtn(btn)
+          
+    def unSelectBtn(self, btn):
+      btn.configure(bg=self.unselectedColor, activebackground=self.unselectedColor)
+      self.update()
+        
+    def selectBtn(self, btn):
+      btn.configure(bg='red', activebackground='red')
+      self.update()
+      
+    def setUnSelectColor(self, val):
+      self.unselectedColor = val
 
 canvas = None # TODO HACK
-btnSelected = [] # TODO HACK
-unSelectedColor = None
+selectionList = None # TODO HACK
+unSelectedColor = None # TODO move to canvas class
 
 def singleClick(btn, imgdir, fileimpacted, tagwin):
     # Single mouse click handling (selection). 
-    global canvas # TODO HACK
-    global btnSelected # TODO HACK
-    global unSelectedColor # TODO HACK
-        
-    # Revert any previously selected thumbnail.
-    if len(btnSelected) != 0:
-      for btn2 in btnSelected:
-        try:
-            btn2.config(bg=unSelectedColor, activebackground=unSelectedColor)  
-        except:
-            pass # button may be in another window?
-      canvas.update()
-      
-    #print(f"KBR: click {btn} {imgdir} {fileimpacted}")
-    btnSelected = []
-    btnSelected.append(btn)
-    selectBtn(btn)
-    
-    tagwin.showImage(fileimpacted) # Notify tag window
-    
-def selectBtn(btn): # TODO canvas class method
-    global canvas
-    btn.configure(relief='sunken') # TODO needs more obvious indication
-    btn.configure(bg='red',activebackground='red')
-    canvas.update()
+    global selectionList # TODO HACK
 
-def unSelectBtn(btn): # TODO canvas class method
-    global canvas
-    global unSelectedColor # TODO HACK
-    btn.configure(relief='raised') # TODO needs more obvious indication
-    btn.configure(bg=unSelectedColor, activebackground=unSelectedColor)  
-    canvas.update()
+    selectionList.clear()
+    selectionList.set(btn)
   
 def ctrlClick(btn, imgdir, fileimpacted, tagwin):
-    global btnSelected
-    
-    if btn in btnSelected:
-      btnSelected.remove(btn) # remove from existing selection
-      unSelectBtn(btn)
-      tagwin.removeImage(fileimpacted)
-    else:
-      btnSelected.append(btn) # add to selected buttons
-      selectBtn(btn)
-      tagwin.anotherImage(fileimpacted) # Notify tag window
+    # Ctrl+mouse click to toggle selected btn's selection status
+    global selectionList # TODO HACK
+    selectionList.toggle(btn)
 
-def updateCanvas(canvas, btns, tagwin): # TODO canvas class method
-    global unSelectedColor
+def updateCanvas(canvas, btns, tagwin, clearSelection=True): # TODO canvas class method
 
+    global selectionList # TODO HACK
+    if clearSelection:
+      selectionList.clear() # selection no longer valid
+      
     canvas.delete('all')
     if btns is None:
       return # nothing to do
@@ -186,7 +186,6 @@ def updateCanvas(canvas, btns, tagwin): # TODO canvas class method
                     window=abtn, width=linksize, height=linksize)
             colpos += linksize
         rowpos += linksize
-
       
 def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
     global unSelectedColor
@@ -236,7 +235,7 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
             link.bind('<Control-Button-1>', handler3)
 
             def handler2(event, _imgfile=imgfile):
-                ViewOne(win.imgdir, _imgfile, dirwinsize, viewsize, canvas.master, nothumbchanges, tagwin, appname)
+                ViewOne(win.imgdir, _imgfile, dirwinsize, viewsize, canvas.master, nothumbchanges, selectionList, tagwin, appname)
                 #ViewOne(imgdir, _imgfile, dirwinsize, viewsize, win, nothumbchanges)
             link.bind('<Double-1>', handler2)
             
@@ -251,6 +250,7 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
         
     if unSelectedColor == None and len(allbtns) > 0:
       unSelectedColor = allbtns[0].cget("background")
+      canvas.setUnSelectColor(unSelectedColor)
       
     return savephotos, allbtns
 
@@ -328,23 +328,17 @@ def onFilter(parentwin):
     parentwin.filterview = fview
 
 def selectAll(win):
-    global btnSelected
-    tagw = win.tagwin
-    btnSelected = []
-    count = len(win.savephotos)
+    global selectionList
+    count = len(win.currbtns)
     if count < 1:
       return
       
-    tagw.showImage(win.allbtns[0].imgfile) # HACK have to start with an image/tag set
-    for btn in win.allbtns:
-      btnSelected.append(btn)
-      selectBtn(btn)
-      tagw.anotherImage(btn.imgfile) # Notify tag window
+    selectionList.setList(win.currbtns)
 
 def resize(win,event):
   global canvas # HACK
   if canvas is not None:
-    updateCanvas(canvas, canvas.master.currbtns, win.master.tagwin)
+    updateCanvas(canvas, canvas.master.currbtns, win.master.tagwin, False) # do not clear selection
     
 ############################################################################
 # View the thumbnails window for an initial or chosen directory
@@ -375,7 +369,7 @@ def viewThumbs(imgdir,                         # open this folder
     --------------------------------------------------------------
     """
     global canvas # TODO HACK
-    
+    global selectionList # TODO HACK
         
     win = kind()
     win.imgdir = imgdir
@@ -412,9 +406,10 @@ def viewThumbs(imgdir,                         # open this folder
                         _tagswin=tagwin)
                         
     tagwin.doneScan()
+    selectionList.add_observer(tagwin)
     
     width, height = dirwinsize                      # [SA] new configs model
-    canvas = ScrolledCanvas(win)                    # init viewable window size
+    canvas = ThumbCanvas(win)                    # init viewable window size
     canvas.config(height=height, width=width)       # changes if user resizes
 
     # NOTE: keeping reference to avoid gc
@@ -446,6 +441,8 @@ def viewThumbs(imgdir,                         # open this folder
     
     win.bind('<Control-a>', lambda event: selectAll(win))
     canvas.bind('<Configure>', lambda event: resize(canvas,event))
+    
+    selectionList.add_observer(canvas)    
     
     win.focus()   # [SA] on Windows, make sure new window catches events now
     return win
@@ -532,12 +529,14 @@ HelpText = ('PyPhoto 2.2\n'
             'http://learning-python.com/programs.html'
            )
 
-
 ############################################################################
 # Top-level logic: get configs, get first folder, display thumbnails
 ############################################################################
 
 if __name__ == '__main__':
+  
+    selectionList = ObservableList()
+    
     """
     open dir = default or cmdline arg
     else show simple window to select
@@ -557,7 +556,7 @@ if __name__ == '__main__':
     viewsize   = viewsize.split('x') if viewsize else ()   # e.g., '800x600'
     viewsize   = list(map(int, viewsize))                  # (800, 600)
     nothumbchanges = configs.NoThumbChanges
-
+    
     if imgdir and os.path.exists(imgdir):
         mainwin = viewThumbs(imgdir, Tk, dirwinsize, viewsize, 
                              nothumbchanges=nothumbchanges)
@@ -589,5 +588,5 @@ if __name__ == '__main__':
             temp.lower()
             temp.destroy()
         mainwin.createcommand('::tk::mac::ReopenApplication', onReopen)
-
+    
     mainwin.mainloop()

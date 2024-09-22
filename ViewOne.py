@@ -6,6 +6,8 @@ from windowicons import trySetWindowIcon
 from PIL import Image                # get image wrapper + widget
 from PIL.ImageTk import PhotoImage   # replaces tkinter's version
 
+from ObservableList import ObservableList
+
 RunningOnMac = sys.platform.startswith('darwin')
 RunningOnWindows = sys.platform.startswith('win')
 RunningOnLinux = sys.platform.startswith('linux')
@@ -70,6 +72,7 @@ class ViewOne(Toplevel):
                  viewsize=(),               # fixed display size 
                  opener=None,               # refocus on errors?
                  nothumbchanges=False,      # thumbs: pass along on "D"
+                 selList=None,
                  tagw=None,
                  appname=None):
 
@@ -78,8 +81,10 @@ class ViewOne(Toplevel):
         self.setTitle(imgfile)
         trySetWindowIcon(self, 'icons', 'tag')   # [SA] for win+lin
         self.viewsize = viewsize                  # fixed scaling size
+        self.selectionList = selList
         self.tagwin = tagw
-        self.tagwin.ActiveViewOne(self)
+        self.tagwin.ActiveViewOne(self) # TODO tagview uses this for next/prev
+        selList.setByName(imgfile)
         
         # try to load image
         imgpath = os.path.join(imgdir, imgfile)   # img file to open
@@ -404,7 +409,8 @@ class ViewOne(Toplevel):
             self.setTitle(nextfile)
             self.trueimage = nextimgpil               # save for ops on image
             self.drawImageFirst()                     # new image, same win/canvas
-            self.tagwin.showImage(nextfile) # KBR update tagview
+            self.selectionList.setByName(nextfile)
+            #self.tagwin.showImage(nextfile) # KBR update tagview
             
         """
         # or new window: this worked but was too twitchy...

@@ -320,6 +320,28 @@ class TagView(Toplevel):
       self.btnPrev["state"] = NORMAL
       self.btnNext["state"] = NORMAL
       
+    def observe_update(self, action, item):
+      #print(f"TV: update {action} {len(item) if item != None else 0} ")
+      if action == "clear":
+        self.currTagList.clear()
+        self.updateCurrentTags()
+        self.imgName.config(text=f" select some thumb ")
+        self.image_names = []
+        self.btnPrev["state"] = DISABLED
+        self.btnNext["state"] = DISABLED
+        
+      elif action == "set":
+        if isinstance(item[0], str): #ViewOne changes selection based on filename not btn
+          self.showImage(item[0])
+          self.btnPrev["state"] = NORMAL
+          self.btnNext["state"] = NORMAL
+        else:
+          self.showImage(item[0].imgfile)
+          for btn in item:
+            self.anotherImage(btn.imgfile)
+      elif action == "extend":
+        self.anotherImage(item[-1].imgfile)
+      
       
 if __name__ == '__main__': 
 
