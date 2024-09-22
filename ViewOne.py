@@ -76,7 +76,7 @@ class ViewOne(Toplevel):
         Toplevel.__init__(self)
         self.appname = appname
         self.setTitle(imgfile)
-        trySetWindowIcon(self, 'icons', 'pygadgets')   # [SA] for win+lin
+        trySetWindowIcon(self, 'icons', 'tag')   # [SA] for win+lin
         self.viewsize = viewsize                  # fixed scaling size
         self.tagwin = tagw
         self.tagwin.ActiveViewOne(self)

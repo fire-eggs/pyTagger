@@ -381,7 +381,7 @@ def viewThumbs(imgdir,                         # open this folder
     win.imgdir = imgdir
     helptxt = 'D=open'
     win.title('%s: %s (%s)' % (appname, imgdir, helptxt))
-    trySetWindowIcon(win, 'icons', 'pygadgets')   # [SA] for win+lin
+    trySetWindowIcon(win, 'icons', 'tag')   # [SA] for win+lin
 
     # [SA] add new Help button
     # [SA] Quit=destroy (this window only unless last Tk), not quit (entire app)
@@ -486,7 +486,7 @@ def onHelp(parentwin):
     from helpmessage import showhelp
     showhelp(parentwin, 'PyPhoto', HelpText, forcetext=False,
              setwinicon=lambda win:
-                    trySetWindowIcon(win, 'icons', 'pygadgets'))
+                    trySetWindowIcon(win, 'icons', 'tag'))
     #parentwin.focus_force()   # now done in helpmessage
 
 
@@ -568,7 +568,7 @@ if __name__ == '__main__':
         handler = lambda: onDirectoryOpen(mainwin, dirwinsize, viewsize, nothumbchanges)
         Button(mainwin, text='Open Image Directory', 
                command=handler).pack(expand=YES, fill=BOTH)
-        trySetWindowIcon(mainwin, 'icons', 'pygadgets')   # [SA] for win+lin
+        trySetWindowIcon(mainwin, 'icons', 'tag')   # [SA] for win+lin
 
     if RunningOnMac:
         # Mac requires menus, deiconifies, focus
