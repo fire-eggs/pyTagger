@@ -26,6 +26,14 @@
 
 # TODO selection: how to reconcile ViewOne / imgfile vs canvas / btn vs TagView / ?
 
+# TODO menu
+# TODO file - open folder; Exit
+# TODO View - tag/untag/all; filter...; viewer...; TBD sort order
+# TODO Nav - next;prev;select all
+# TODO Help
+
+# TODO using sys.platform is deprecated? use root.tk.call('tk','windowingsystem') instead?
+
 import sys, math, os, traceback
 from tkinter import *
 from tkinter.filedialog import SaveAs, Directory, askdirectory
@@ -139,7 +147,6 @@ class ThumbCanvas(ScrolledCanvas):
 
 canvas = None # TODO HACK
 selectionList = None # TODO HACK
-unSelectedColor = None # TODO move to canvas class
 
 def singleClick(btn, imgdir, fileimpacted, tagwin):
     # Single mouse click handling (selection). 
@@ -188,7 +195,6 @@ def updateCanvas(canvas, btns, tagwin, clearSelection=True): # TODO canvas class
         rowpos += linksize
       
 def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
-    global unSelectedColor
 
     win = canvas.master    
     
@@ -248,7 +254,7 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
             savephotos.append(photo)
         rowpos += linksize
         
-    if unSelectedColor == None and len(allbtns) > 0:
+    if len(allbtns) > 0:
       unSelectedColor = allbtns[0].cget("background")
       canvas.setUnSelectColor(unSelectedColor)
       
