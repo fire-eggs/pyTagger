@@ -89,14 +89,21 @@ class TagView(Toplevel):
         self.bind_all("<Next>", lambda event: self.clickNext())        
         self.bind_all("<Prior>", lambda event: self.clickPrev())
 
-
+    def getImgTagsLC(self,imgfile):
+      # 'Xmp.dc.subject' tags from the image, as lowercase and no empty strings
+      # 
+      isok, tags = self.getImgTags(imgfile)
+      if isok:
+        return True, [i.lower() for i in tags if i]
+      return False, []
+      
     def getImgTags(self, imgfile):
         imagePath = os.path.join(self.folder, imgfile)
         try:
             with pyexiv2.Image(imagePath) as img:
                 res = img.read_raw_xmp()
                 if len(res) == 0:
-                    return True, [] # read fail
+                    return False, [] # read fail
         #      print(f"|{res[0]}|")
         #      if res[0] != "<":
         #        print(res)
@@ -117,11 +124,9 @@ class TagView(Toplevel):
         # For an image in the folder, adds its tags to the folder list
 
         # read all tags from provided imgfile
-        ok, taglist = self.getImgTags(imgfile)
+        ok, taglist = self.getImgTagsLC(imgfile)
         if not ok:
             return 2
-
-        taglist = [i.lower() for i in taglist if i] # remove empty strings; all lowercase
 
         # add each to the master tag set 
         self.masterTagList.update(taglist)
@@ -174,8 +179,8 @@ class TagView(Toplevel):
         rems = self.origCurrTagList.difference(self.currTagList) # tags to remove
         #print(f"Adds: {adds} Removes: {rems}")
         for imgname in self.image_names:
-            ok, currtags = self.getImgTags(imgname)
-            currtags2 = {i.lower() for i in currtags if i} # TODO merge into getImgTags?
+            ok, currtags = self.getImgTagsLC(imgname)
+            currtags2 = set(currtags)
             currtags2.difference_update(rems)
             currtags2.update(adds)
             #print(f"{imgname}: before:{currtags} after:{currtags2}")
@@ -236,14 +241,13 @@ class TagView(Toplevel):
         self.currTagList.clear()
         self.origCurrTagList.clear()
 
-        ok, taglist = self.getImgTags(imgname)
+        ok, taglist = self.getImgTagsLC(imgname)
 #        if not ok:
 #            return # TODO cannot work with image. Need to reset things.
 
         #print(f"found tags:{taglist}")
         if ok:
-            temp = [i.lower() for i in taglist if i] # remove empty strings; all lowercase
-            self.currTagList.update(sorted(temp)) 
+            self.currTagList.update(sorted(taglist)) 
             self.origCurrTagList.update(self.currTagList)
 
         self.updateCurrentTags()
@@ -257,12 +261,12 @@ class TagView(Toplevel):
       self.imgName.config(text=f"*Multiple images*")
       
       # determine the new "common tags" list
-      ok, taglist = self.getImgTags(imgname) # tags for new image
+      ok, taglist = self.getImgTagsLC(imgname) # tags for new image
 #        if not ok:
 #            return # TODO cannot work with image. Need to reset things.
       
       if ok:
-        temp = set(i.lower() for i in taglist if i) # remove empty strings; all lowercase
+        temp = set(taglist)
         inter = temp.intersection(self.origCurrTagList)
         self.currTagList.clear()
         self.currTagList.update(sorted(inter))

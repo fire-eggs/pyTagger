@@ -260,31 +260,15 @@ def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
       
     return savephotos, allbtns
 
-def complexFilter(tagwin, thumbs, searchlist):
-    searchset = set(searchlist)
-    subthumbs = []
-    for thumbtuple in thumbs:
-        ok, imagetags = tagwin.getImgTags(thumbtuple[0])
-        if ok and len(imagetags):
-            # TODO should be in TagView.py
-            taglist = [i.lower() for i in imagetags if i] # remove empty strings; all lowercase
-            
-            # true: all search tags are in the image tag set (a AND b AND c)
-            if searchset <= set(taglist):
-                subthumbs.append(thumbtuple)
-    return subthumbs
-
 def complexFilter(tagwin, btns, searchlist):
+  # all thumbs which match a tag search set
     searchset = set(searchlist)
     subthumbs = []
     for btn in btns:
-        ok, imagetags = tagwin.getImgTags(btn.imgfile)
+        ok, imagetags = tagwin.getImgTagsLC(btn.imgfile)
         if ok and len(imagetags):
-            # TODO should be in TagView.py
-            taglist = [i.lower() for i in imagetags if i] # remove empty strings; all lowercase
-            
             # true: all search tags are in the image tag set (a AND b AND c)
-            if searchset <= set(taglist):
+            if searchset <= set(imagetags):
                 subthumbs.append(btn)
     return subthumbs
 
@@ -292,9 +276,7 @@ def simpleFilter(tagwin, btns, taggedonly):
   # identify tagged / untagged
     subthumbs = []
     for btn in btns:
-        ok, tags = tagwin.getImgTags(btn.imgfile)
-        
-        tags = [i.lower() for i in tags if i] # remove empty strings; all lowercase
+        ok, tags = tagwin.getImgTagsLC(btn.imgfile)
         
         if taggedonly:
             if ok and len(tags):
