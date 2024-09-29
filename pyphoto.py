@@ -28,7 +28,7 @@
 
 # TODO menu
 # TODO file - open folder; Exit
-# TODO View - tag/untag/all; filter...; viewer...; TBD sort order
+# TODO View - tag/untag/all; search...; viewer...; TBD sort order
 # TODO Nav - next;prev;select all
 # TODO Help
 
@@ -377,7 +377,7 @@ def viewThumbs(imgdir,                         # open this folder
     tagg.pack(side=LEFT, expand=YES)
     untag = Button(tools, text=' Untagged ', command=lambda: onUnTaggedOnly(win))
     untag.pack(side=LEFT, expand=YES)
-    filt = Button(tools, text=' Filter ', command=lambda: onFilter(win))
+    filt = Button(tools, text=' Search... ', command=lambda: onFilter(win))
     filt.pack(side=LEFT, expand=YES)
     
     # [SA] question=? but portable, help key in all gadgets
