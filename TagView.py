@@ -103,7 +103,8 @@ class TagView(Toplevel):
             with pyexiv2.Image(imagePath) as img:
                 res = img.read_raw_xmp()
                 if len(res) == 0:
-                    return False, [] # read fail
+                    #print(f"git1 {imagePath}")
+                    return True, [] # read fail, just means there is no Xmp, not fatal!
         #      print(f"|{res[0]}|")
         #      if res[0] != "<":
         #        print(res)
@@ -115,6 +116,7 @@ class TagView(Toplevel):
                 except:
                     return True, [] # no Xmp.dc.subject
         except:
+            #print(f"git2 {imagePath}")
             return False, [] # couldn't parse xmp
 
     # 0
