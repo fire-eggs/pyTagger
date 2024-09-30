@@ -298,7 +298,6 @@ def openImageSafely(imgpath):
     imgobj = Image.open(io.BytesIO(filedat))    # file bytes => pillow obj
     return imgobj
 
-
 def getImageFormat(imgname):    # imgobj no longer used
     """
     --------------------------------------------------------------------------
@@ -424,6 +423,8 @@ def makeThumbs_pklfile(imgdir, size, pklfile, busywindow, nothumbchanges):
 
     MODTIME, FILEBYTES = 0, 1  # dicts are expensive
     thumbpath = os.path.join(imgdir, pklfile)
+
+    mimetypes.add_type("image/webp", ".webp") # python 3.10 doesn't support yet
 
     # announce in GUIs
     busylabel = None
