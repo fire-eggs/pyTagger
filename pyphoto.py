@@ -10,14 +10,13 @@
 # TODO canvas resize should do nothing if numcols doesn't change
 # TODO tie together views, i.e. when minimize a tagview, matching thumbview should also minimize
 # TODO shift+click for extended selection
-# TODO force only one ViewOne at a time 
-# TODO closing the ViewOne isn't updating the tagview - exception on tagview next/prev
 # TODO "global" tags, remembered and not tied to a directory (config, memory)
 # TODO the ViewOne window position changes when the image changes
 # TODO some button state is changing to 'sunken' (when double-click?)
 # TODO options for image sorting order
 # TODO three-state toggle: tagged / untagged / all
 # TODO configurable selection color/appearance
+# TODO webp wasn't supported by default, need to check other file formats
 
 # TODO consider a Mediator class: directoryList + activeSelection + Tag/View/Thumb views
 #   - next/prev navigation [in both ViewOne and TagView] needs to update current selection in thumb view
@@ -194,7 +193,7 @@ def updateCanvas(canvas, btns, tagwin, clearSelection=True): # TODO canvas class
             colpos += linksize
         rowpos += linksize
       
-def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin):
+def buildCanvas(canvas, dirwinsize, numcols, thumbs, tagwin): # TODO canvas class method
 
     win = canvas.master    
     
