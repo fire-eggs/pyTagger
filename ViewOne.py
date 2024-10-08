@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+
+# KBR 20241007 - implement as a singleton
+
 import os,traceback,sys
 from tkinter import *
 from viewer_thumbs import reorientImage, openImageSafely, sortedDisplayOrder, isTaggableImage
@@ -66,6 +70,13 @@ class ViewOne(Toplevel):
     call load() explicitly to force errors to happen immediately.
     --------------------------------------------------------------
     """
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+      if not cls._instance:
+        cls._instance = super(ViewOne, cls).__new__(cls)
+        cls._instance.dialog = None
+      return cls._instance
+      
     def __init__(self, 
                  imgdir, imgfile,           # image path+name to display
                  dirwinsize=(),             # thumbs: pass along on "D"
@@ -76,10 +87,16 @@ class ViewOne(Toplevel):
                  tagw=None,
                  appname=None):
 
-        Toplevel.__init__(self)
+        if self.dialog is None or not self.winfo_exists():
+          Toplevel.__init__(self)
+          trySetWindowIcon(self, 'icons', 'tag')   # [SA] for win+lin
+          self.dialog = self.tk
+          self.canvas = ScrolledCanvas(self)        # tk canvas to be reused
+        else:
+          self.lift()
+                    
         self.appname = appname
         self.setTitle(imgfile)
-        trySetWindowIcon(self, 'icons', 'tag')   # [SA] for win+lin
         self.viewsize = viewsize                  # fixed scaling size
         self.selectionList = selList
         self.tagwin = tagw
@@ -94,6 +111,7 @@ class ViewOne(Toplevel):
             imgpil.load()                         # [2.1] load now so errors here
             imgpil = reorientImage(imgpil)        # [2.2] right-side up, iff needed 
         except:
+            # TODO this section may not work with singleton
             # [2.1] can fail on OSError+ in Pillow
             traceback.print_exc()
             self.destroy()
@@ -105,11 +123,11 @@ class ViewOne(Toplevel):
             return                                # abandon after error popup
 
         self.trueimage = imgpil                   # for all ops till N/P
-        self.canvas = ScrolledCanvas(self)        # tk canvas to be reused
+        #self.canvas = ScrolledCanvas(self)        # tk canvas to be reused
         self.drawImageFirst()                     # show scaled or actual now
 
+        # TODO most of the following section goes into the initialize-once area
         # bind keys/events for this image-view window
-
         self.canvas.bind('<Button-1>', self.onSizeToDisplayHeight)
         self.canvas.bind('<Button-3>', self.onSizeToDisplayWidth)
         if RunningOnMac:
