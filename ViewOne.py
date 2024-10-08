@@ -158,6 +158,8 @@ class ViewOne(Toplevel):
         self.bind('<KeyPress-a>', lambda event: self.drawImageSized(self.trueimage))
         self.bind('<KeyPress-s>', lambda event: self.drawImageFirst())
         
+        self.bind('<Destroy>', lambda event: self.cleanup())
+        
         self.focus()   # on Windows, make sure new window catches events now
 
         # [SA] set min size as partial fix for odd window shinkage on zoomout
@@ -166,6 +168,9 @@ class ViewOne(Toplevel):
         self.minsize(500, 500)   # w, h
         """
 
+    def cleanup(self):
+        self.tagwin.ActiveViewOne(None) # TODO tagview uses this for next/prev
+      
     def setTitle(self, imgfile):
         """
         [SA] split off from constructor for next/prior

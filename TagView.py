@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 View and edit tags for selected image(s).
 
@@ -323,8 +325,11 @@ class TagView(Toplevel):
 
     def ActiveViewOne(self, whichview):
       self.whoisit = whichview
-      self.btnPrev["state"] = NORMAL
-      self.btnNext["state"] = NORMAL
+      try:
+        self.btnPrev["state"] = DISABLED if whichview is None else NORMAL
+        self.btnNext["state"] = DISABLED if whichview is None else NORMAL
+      except:
+        pass
       
     def observe_update(self, action, item):
       #print(f"TV: update {action} {len(item) if item != None else 0} ")
