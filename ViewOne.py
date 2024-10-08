@@ -136,7 +136,7 @@ class ViewOne(Toplevel):
 
         self.bind('<KeyPress-i>', self.onZoomIn)
         self.bind('<KeyPress-o>', self.onZoomOut)
-        self.bind('<KeyPress-w>', self.onSaveImage)
+        #self.bind('<KeyPress-w>', self.onSaveImage)
         self.bind('<KeyPress-d>', 
             lambda event: onDirectoryOpen(self, dirwinsize, viewsize, nothumbchanges))
 
@@ -366,24 +366,24 @@ class ViewOne(Toplevel):
     # Saving
     #
 
-    def onSaveImage(self, event):
-        """
-        save current image size/state to a file;
-        per PIL, fiename extension gives image type;
-        [SA] save from viewimage: currently shown size;
-        [SA] set initialfile name for convenience;
-        [2.1] catch/report save errors, console+GUI
-        """
-        filename = saveDialog.show(initialfile=self.imgfile)
-        if filename:
-            try:
-                self.viewimage.save(filename)
-            except:
-                traceback.print_exc()
-                print('Error saving image file: not saved') 
-                showerror('PyPhoto: Image Save',
-                      'Cannot save image file:\n%s' % filename)
-        self.focus_force()   # [SA] for Mac
+    # def onSaveImage(self, event):
+        # """
+        # save current image size/state to a file;
+        # per PIL, fiename extension gives image type;
+        # [SA] save from viewimage: currently shown size;
+        # [SA] set initialfile name for convenience;
+        # [2.1] catch/report save errors, console+GUI
+        # """
+        # filename = saveDialog.show(initialfile=self.imgfile)
+        # if filename:
+            # try:
+                # self.viewimage.save(filename)
+            # except:
+                # traceback.print_exc()
+                # print('Error saving image file: not saved') 
+                # showerror('PyPhoto: Image Save',
+                      # 'Cannot save image file:\n%s' % filename)
+        # self.focus_force()   # [SA] for Mac
       
     #
     # Navigating
