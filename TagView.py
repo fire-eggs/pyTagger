@@ -58,12 +58,12 @@ class TagView(Toplevel):
         blah = Frame(self, bg='green')
         
         self.btnPrev = Button(blah, text=" Prev Image ", command=self.clickPrev)
-        self.btnPrev["state"] = DISABLED # TODO pending a file list mediator for thumbs/tag views
+        self.btnPrev["state"] = DISABLED
         CreateToolTip(self.btnPrev,"[PgUp] Navigate to the previous image")
         btnReset = Button(blah, text=" Reset ", command=self.clickReset)
         btnWrite = Button(blah, text= " Write ", command=self.clickWrite)
         self.btnNext = Button(blah, text= " Next Image ", command=self.clickNext)
-        self.btnNext["state"] = DISABLED # TODO pending a file list mediator for thumbs/tag views
+        self.btnNext["state"] = DISABLED
         CreateToolTip(self.btnNext,"[PgDn] Navigate to the next image")
         
         self.btnPrev.grid (row=0,column=0, padx=5, pady=1)
