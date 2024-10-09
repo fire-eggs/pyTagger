@@ -25,12 +25,6 @@
 
 # TODO selection: how to reconcile ViewOne / imgfile vs canvas / btn vs TagView / ?
 
-# TODO menu
-# TODO file - open folder; Exit
-# TODO View - tag/untag/all; search...; viewer...; TBD sort order
-# TODO Nav - next;prev;select all
-# TODO Help
-
 # TODO using sys.platform is deprecated? use root.tk.call('tk','windowingsystem') instead?
 
 import sys, math, os, traceback
@@ -326,6 +320,37 @@ def resize(win,event):
   global canvas # HACK
   if canvas is not None:
     updateCanvas(canvas, canvas.master.currbtns, win.master.tagwin, False) # do not clear selection
+
+def build_menu(win, dirwinsize, viewsize, nothumbchanges, canvas):
+    """
+    Create the menu system
+    """
+    menu_bar = tk.Menu(win)
+    
+    file_menu = tk.Menu(menu_bar, tearoff=0)
+    file_menu.add_command(label="Open...", command=lambda: onDirectoryOpen(win, dirwinsize, viewsize, nothumbchanges))
+    file_menu.add_command(label="Exit", command=lambda: onQuit(win))
+    menu_bar.add_cascade(label="File", menu=file_menu)
+    
+    view_menu = tk.Menu(menu_bar, tearoff=0)
+    # TODO radio menu initial selection, requires variable(?)
+    view_menu.add_radiobutton(label="Tagged Files", command=lambda: onTaggedOnly(win))
+    view_menu.add_radiobutton(label="Untagged Files", command=lambda: onUnTaggedOnly(win))
+    view_menu.add_radiobutton(label="All Files", command=lambda: onViewAll(win, canvas))
+    view_menu.add_separator()
+    view_menu.add_command(label="Search...", command=lambda: onFilter(win))
+    #view_menu.add_command(label="Viewer...", 
+    # TODO sort order
+    menu_bar.add_cascade(label="View", menu=view_menu)
+
+    nav_menu = tk.Menu(menu_bar, tearoff=0)
+    nav_menu.add_command(label="Previous") # TODO implementation
+    nav_menu.add_command(label="Next") # TODO implementation
+    nav_menu.add_command(label="Select All", command=lambda: selectAll(win))
+    menu_bar.add_cascade(label="Nav", menu=nav_menu)
+    
+    win.config(menu=menu_bar)
+
     
 ############################################################################
 # View the thumbnails window for an initial or chosen directory
@@ -430,6 +455,8 @@ def viewThumbs(imgdir,                         # open this folder
     canvas.bind('<Configure>', lambda event: resize(canvas,event))
     
     selectionList.add_observer(canvas)    
+    
+    build_menu(win, dirwinsize, viewsize, nothumbchanges, canvas) # TODO simplify parameters
     
     win.focus()   # [SA] on Windows, make sure new window catches events now
     return win
