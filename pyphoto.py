@@ -12,9 +12,7 @@
 # TODO shift+click for extended selection
 # TODO "global" tags, remembered and not tied to a directory (config, memory)
 # TODO the ViewOne window position changes when the image changes
-# TODO some button state is changing to 'sunken' (when double-click?)
 # TODO options for image sorting order
-# TODO three-state toggle: tagged / untagged / all
 # TODO configurable selection color/appearance
 # TODO webp wasn't supported by default, need to check other file formats
 
